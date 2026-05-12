@@ -4,33 +4,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Year Progress</title>
+    <title>Year Progress | Dashboard</title>
     <style>
-        /* Base Theme Variables */
+        /* Dark Theme Foundation */
         :root {
-            --bg-color: #ffffff;
-            --text-color: #1a1a1a;
-            --accent-color: #3b82f6; /* Default Blue */
-            --bar-bg: #e5e7eb;
-            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --bg-dark: #0f172a;        /* Deep background */
+            --card-bg: #1e293b;        /* Slightly lighter card */
+            --text-main: #f8fafc;      /* High contrast text */
+            --text-dim: #94a3b8;       /* Muted text */
+            --bar-track: #334155;      /* Empty progress bar */
+            
+            /* Default Accent (Blue) */
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.3);
         }
 
-        /* Dark Theme Variables (Optional secondary default) */
-        [data-theme="dark"] {
-            --bg-color: #111827;
-            --text-color: #f9fafb;
-            --bar-bg: #374151;
-        }
-
-        /* Theme Presets */
-        [data-theme="emerald"] { --accent-color: #10b981; }
-        [data-theme="rose"] { --accent-color: #f43f5e; }
-        [data-theme="amber"] { --accent-color: #f59e0b; }
-        [data-theme="violet"] { --accent-color: #8b5cf6; }
+        /* Accent Color Definitions */
+        [data-theme="cyan"] { --accent: #06b6d4; --accent-glow: rgba(6, 182, 212, 0.3); }
+        [data-theme="lime"] { --accent: #84cc16; --accent-glow: rgba(132, 204, 22, 0.3); }
+        [data-theme="purple"] { --accent: #a855f7; --accent-glow: rgba(168, 85, 247, 0.3); }
+        [data-theme="orange"] { --accent: #f97316; --accent-glow: rgba(249, 115, 22, 0.3); }
+        [data-theme="pink"] { --accent: #ec4899; --accent-glow: rgba(236, 72, 153, 0.3); }
 
         * {
             box-sizing: border-box;
-            transition: background 0.3s ease, color 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
@@ -40,165 +38,194 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: var(--font-main);
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        .container {
+        .card {
+            background: var(--card-bg);
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
             width: 90%;
-            max-width: 500px;
+            max-width: 550px;
             text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
+        .year-title {
+            font-size: 4rem;
             font-weight: 800;
-            letter-spacing: -1px;
+            margin: 0;
+            letter-spacing: -2px;
+            color: var(--accent);
+            text-shadow: 0 0 20px var(--accent-glow);
         }
 
-        .date-display {
-            opacity: 0.7;
-            margin-bottom: 2rem;
+        .date-subtitle {
+            color: var(--text-dim);
+            margin-bottom: 2.5rem;
             font-size: 1.1rem;
+            font-weight: 400;
         }
 
-        /* Progress Bar Styles */
-        .progress-wrapper {
-            background: var(--bar-bg);
-            border-radius: 100px;
-            height: 24px;
+        /* Progress Bar Container */
+        .progress-container {
+            background: var(--bar-track);
+            height: 16px;
+            border-radius: 50px;
             width: 100%;
             overflow: hidden;
-            margin-bottom: 1rem;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+            position: relative;
         }
 
+        /* Moving Fill */
         .progress-fill {
             height: 100%;
-            background-color: var(--accent-color);
-            width: 0%; /* Animated via JS */
-            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 100px;
+            width: 0%;
+            background: var(--accent);
+            box-shadow: 0 0 15px var(--accent);
+            border-radius: 50px;
         }
 
-        .stats {
-            font-weight: 600;
-            font-size: 1.2rem;
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
         }
 
-        /* Theme Picker Styles */
+        .percentage-text {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .days-text {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        /* Theme Picker */
         .theme-picker {
             margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
             display: flex;
-            gap: 12px;
+            gap: 15px;
             justify-content: center;
         }
 
-        .theme-dot {
-            width: 24px;
-            height: 24px;
+        .color-dot {
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             cursor: pointer;
-            border: 2px solid transparent;
-            transition: transform 0.2s;
+            border: 3px solid transparent;
         }
 
-        .theme-dot:hover {
+        .color-dot:hover {
             transform: scale(1.2);
         }
 
-        .theme-dot.active {
-            border-color: var(--text-color);
+        .color-dot.active {
+            border-color: white;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
         }
 
-        /* Color Buttons */
-        .dot-blue { background: #3b82f6; }
-        .dot-emerald { background: #10b981; }
-        .dot-rose { background: #f43f5e; }
-        .dot-amber { background: #f59e0b; }
-        .dot-violet { background: #8b5cf6; }
-        .dot-dark { background: #1f2937; border: 1px solid #4b5563; }
+        .c-blue { background: #3b82f6; }
+        .c-cyan { background: #06b6d4; }
+        .c-lime { background: #84cc16; }
+        .c-purple { background: #a855f7; }
+        .c-orange { background: #f97316; }
+        .c-pink { background: #ec4899; }
+
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1 id="year-label">2024</h1>
-        <div class="date-display" id="date-display">Today is Loading...</div>
+    <div class="card">
+        <h1 class="year-title" id="year-label">2024</h1>
+        <div class="date-subtitle" id="date-display">...</div>
 
-        <div class="progress-wrapper">
+        <div class="progress-container">
             <div class="progress-fill" id="progress-fill"></div>
         </div>
 
-        <div class="stats">
-            <span id="percentage">0</span>% Complete
+        <div class="stats-row">
+            <div class="percentage-text"><span id="percentage">0</span>%</div>
+            <div class="days-text">
+                Day <span id="days-passed">0</span> of <span id="days-total">365</span>
+            </div>
         </div>
-        <p style="opacity: 0.6; font-size: 0.9rem; margin-top: 8px;">
-            <span id="days-passed">0</span> / <span id="days-total">365</span> days
-        </p>
 
         <div class="theme-picker">
-            <div class="theme-dot dot-blue" onclick="setTheme('default')"></div>
-            <div class="theme-dot dot-emerald" onclick="setTheme('emerald')"></div>
-            <div class="theme-dot dot-rose" onclick="setTheme('rose')"></div>
-            <div class="theme-dot dot-amber" onclick="setTheme('amber')"></div>
-            <div class="theme-dot dot-violet" onclick="setTheme('violet')"></div>
-            <div class="theme-dot dot-dark" onclick="setTheme('dark')"></div>
+            <div class="color-dot c-blue active" onclick="setTheme('default', this)"></div>
+            <div class="color-dot c-cyan" onclick="setTheme('cyan', this)"></div>
+            <div class="color-dot c-lime" onclick="setTheme('lime', this)"></div>
+            <div class="color-dot c-purple" onclick="setTheme('purple', this)"></div>
+            <div class="color-dot c-orange" onclick="setTheme('orange', this)"></div>
+            <div class="color-dot c-pink" onclick="setTheme('pink', this)"></div>
         </div>
     </div>
 
     <script>
-        function updateProgress() {
+        function updateYearProgress() {
             const now = new Date();
-            const start = new Date(now.getFullYear(), 0, 0);
-            const diff = now - start;
-            const oneDay = 1000 * 60 * 60 * 24;
-            const dayOfYear = Math.floor(diff / oneDay);
-            
             const year = now.getFullYear();
-            const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-            const totalDays = isLeapYear ? 366 : 365;
             
-            const percent = ((dayOfYear / totalDays) * 100).toFixed(1);
+            // Calculate progress
+            const start = new Date(year, 0, 1);
+            const end = new Date(year + 1, 0, 1);
+            const totalMs = end - start;
+            const passedMs = now - start;
+            
+            const daysPassed = Math.floor(passedMs / (1000 * 60 * 60 * 24)) + 1;
+            const totalDays = Math.floor(totalMs / (1000 * 60 * 60 * 24));
+            const percent = ((daysPassed / totalDays) * 100).toFixed(1);
 
-            // Update DOM
+            // Update UI
             document.getElementById('year-label').innerText = year;
-            document.getElementById('date-display').innerText = now.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            document.getElementById('days-passed').innerText = dayOfYear;
+            document.getElementById('date-display').innerText = now.toLocaleDateString(undefined, { 
+                weekday: 'long', month: 'long', day: 'numeric' 
+            });
+            document.getElementById('days-passed').innerText = daysPassed;
             document.getElementById('days-total').innerText = totalDays;
             document.getElementById('percentage').innerText = percent;
             
-            // Animate bar
+            // Width animation
             setTimeout(() => {
                 document.getElementById('progress-fill').style.width = percent + '%';
-            }, 100);
+            }, 200);
         }
 
-        function setTheme(themeName) {
+        function setTheme(themeName, el) {
+            // Remove active class from all dots
+            document.querySelectorAll('.color-dot').forEach(dot => dot.classList.remove('active'));
+            
+            // Set data attribute on HTML tag
             if (themeName === 'default') {
                 document.documentElement.removeAttribute('data-theme');
             } else {
                 document.documentElement.setAttribute('data-theme', themeName);
             }
             
-            // Save preference
-            localStorage.setItem('user-theme', themeName);
+            // Add active class to clicked dot
+            if(el) el.classList.add('active');
             
-            // Update dot UI
-            document.querySelectorAll('.theme-dot').forEach(dot => dot.classList.remove('active'));
-            // Visual feedback could be added here to highlight selected dot
+            // Persist choice
+            localStorage.setItem('preferred-accent', themeName);
         }
 
-        // Initialize
+        // Run on load
         window.onload = () => {
-            updateProgress();
+            updateYearProgress();
             
-            // Load saved theme
-            const savedTheme = localStorage.getItem('user-theme');
+            // Restore saved theme
+            const savedTheme = localStorage.getItem('preferred-accent');
             if (savedTheme) {
-                setTheme(savedTheme);
+                const targetDot = document.querySelector(`.c-${savedTheme === 'default' ? 'blue' : savedTheme}`);
+                setTheme(savedTheme, targetDot);
             }
         };
     </script>
