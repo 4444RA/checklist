@@ -4,31 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Year Progress | Dashboard</title>
+    <title>Year Progress</title>
     <style>
-        /* Dark Theme Foundation */
         :root {
-            --bg-dark: #0f172a;        /* Deep background */
-            --card-bg: #1e293b;        /* Slightly lighter card */
-            --text-main: #f8fafc;      /* High contrast text */
-            --text-dim: #94a3b8;       /* Muted text */
-            --bar-track: #334155;      /* Empty progress bar */
-            
-            /* Default Accent (Blue) */
-            --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.3);
+            --bg-color: #121212;      /* Deep Matte Grey */
+            --text-primary: #e0e0e0;  /* Off-white */
+            --text-secondary: #757575; /* Muted Grey */
+            --bar-track: #2a2a2a;     /* Darker track */
+            --bar-fill: #ffffff;      /* High contrast fill */
         }
-
-        /* Accent Color Definitions */
-        [data-theme="cyan"] { --accent: #06b6d4; --accent-glow: rgba(6, 182, 212, 0.3); }
-        [data-theme="lime"] { --accent: #84cc16; --accent-glow: rgba(132, 204, 22, 0.3); }
-        [data-theme="purple"] { --accent: #a855f7; --accent-glow: rgba(168, 85, 247, 0.3); }
-        [data-theme="orange"] { --accent: #f97316; --accent-glow: rgba(249, 115, 22, 0.3); }
-        [data-theme="pink"] { --accent: #ec4899; --accent-glow: rgba(236, 72, 153, 0.3); }
 
         * {
             box-sizing: border-box;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            -webkit-font-smoothing: antialiased;
         }
 
         body {
@@ -38,196 +26,144 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+            letter-spacing: -0.01em;
         }
 
-        .card {
-            background: var(--card-bg);
-            padding: 3rem;
-            border-radius: 24px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-            width: 90%;
-            max-width: 550px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .year-title {
-            font-size: 4rem;
-            font-weight: 800;
-            margin: 0;
-            letter-spacing: -2px;
-            color: var(--accent);
-            text-shadow: 0 0 20px var(--accent-glow);
-        }
-
-        .date-subtitle {
-            color: var(--text-dim);
-            margin-bottom: 2.5rem;
-            font-size: 1.1rem;
-            font-weight: 400;
-        }
-
-        /* Progress Bar Container */
-        .progress-container {
-            background: var(--bar-track);
-            height: 16px;
-            border-radius: 50px;
+        .wrapper {
             width: 100%;
-            overflow: hidden;
-            margin-bottom: 1.5rem;
-            position: relative;
+            max-width: 450px;
+            padding: 20px;
+            text-align: center;
         }
 
-        /* Moving Fill */
+        /* Sophisticated Typography */
+        .year-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .percentage-display {
+            font-size: 5rem;
+            font-weight: 300;
+            margin: 0;
+            line-height: 1;
+            color: var(--text-primary);
+        }
+
+        .percentage-display span {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-left: 2px;
+        }
+
+        /* Elegant Thin Bar */
+        .progress-container {
+            width: 100%;
+            height: 4px; /* Thin and sleek */
+            background: var(--bar-track);
+            border-radius: 2px;
+            margin: 2.5rem 0;
+            overflow: hidden;
+        }
+
         .progress-fill {
             height: 100%;
             width: 0%;
-            background: var(--accent);
-            box-shadow: 0 0 15px var(--accent);
-            border-radius: 50px;
+            background: var(--bar-fill);
+            transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
         }
 
-        .stats-row {
+        /* Footer Info */
+        .footer-info {
             display: flex;
             justify-content: space-between;
-            align-items: baseline;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 400;
         }
 
-        .percentage-text {
-            font-size: 2rem;
-            font-weight: 700;
-        }
-
-        .days-text {
-            color: var(--text-dim);
-            font-size: 0.9rem;
-        }
-
-        /* Theme Picker */
-        .theme-picker {
+        .current-date {
             margin-top: 3rem;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            gap: 15px;
-            justify-content: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            border-top: 1px solid #222;
+            padding-top: 1.5rem;
         }
 
-        .color-dot {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 3px solid transparent;
+        /* Subtle Fade-in Animation */
+        .wrapper {
+            animation: fadeIn 1.2s ease-out;
         }
 
-        .color-dot:hover {
-            transform: scale(1.2);
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        .color-dot.active {
-            border-color: white;
-            box-shadow: 0 0 10px rgba(255,255,255,0.5);
-        }
-
-        .c-blue { background: #3b82f6; }
-        .c-cyan { background: #06b6d4; }
-        .c-lime { background: #84cc16; }
-        .c-purple { background: #a855f7; }
-        .c-orange { background: #f97316; }
-        .c-pink { background: #ec4899; }
-
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1 class="year-title" id="year-label">2024</h1>
-        <div class="date-subtitle" id="date-display">...</div>
+    <div class="wrapper">
+        <div class="year-label" id="year-text">2024</div>
+        <h1 class="percentage-display"><span id="percentage">0</span><span>%</span></h1>
 
         <div class="progress-container">
             <div class="progress-fill" id="progress-fill"></div>
         </div>
 
-        <div class="stats-row">
-            <div class="percentage-text"><span id="percentage">0</span>%</div>
-            <div class="days-text">
-                Day <span id="days-passed">0</span> of <span id="days-total">365</span>
-            </div>
+        <div class="footer-info">
+            <span>Day <span id="days-passed">0</span></span>
+            <span><span id="days-remaining">0</span> days left</span>
         </div>
 
-        <div class="theme-picker">
-            <div class="color-dot c-blue active" onclick="setTheme('default', this)"></div>
-            <div class="color-dot c-cyan" onclick="setTheme('cyan', this)"></div>
-            <div class="color-dot c-lime" onclick="setTheme('lime', this)"></div>
-            <div class="color-dot c-purple" onclick="setTheme('purple', this)"></div>
-            <div class="color-dot c-orange" onclick="setTheme('orange', this)"></div>
-            <div class="color-dot c-pink" onclick="setTheme('pink', this)"></div>
-        </div>
+        <div class="current-date" id="full-date">---</div>
     </div>
 
     <script>
-        function updateYearProgress() {
+        function init() {
             const now = new Date();
             const year = now.getFullYear();
             
-            // Calculate progress
+            // Time math
             const start = new Date(year, 0, 1);
             const end = new Date(year + 1, 0, 1);
             const totalMs = end - start;
             const passedMs = now - start;
             
-            const daysPassed = Math.floor(passedMs / (1000 * 60 * 60 * 24)) + 1;
             const totalDays = Math.floor(totalMs / (1000 * 60 * 60 * 24));
+            const daysPassed = Math.floor(passedMs / (1000 * 60 * 60 * 24)) + 1;
+            const daysRemaining = totalDays - daysPassed;
+            
+            // Precision percentage
             const percent = ((daysPassed / totalDays) * 100).toFixed(1);
 
-            // Update UI
-            document.getElementById('year-label').innerText = year;
-            document.getElementById('date-display').innerText = now.toLocaleDateString(undefined, { 
-                weekday: 'long', month: 'long', day: 'numeric' 
-            });
-            document.getElementById('days-passed').innerText = daysPassed;
-            document.getElementById('days-total').innerText = totalDays;
+            // Populate UI
+            document.getElementById('year-text').innerText = year;
             document.getElementById('percentage').innerText = percent;
+            document.getElementById('days-passed').innerText = daysPassed;
+            document.getElementById('days-remaining').innerText = daysRemaining;
             
-            // Width animation
+            document.getElementById('full-date').innerText = now.toLocaleDateString(undefined, { 
+                weekday: 'long', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+
+            // Animate Bar
             setTimeout(() => {
                 document.getElementById('progress-fill').style.width = percent + '%';
-            }, 200);
+            }, 300);
         }
 
-        function setTheme(themeName, el) {
-            // Remove active class from all dots
-            document.querySelectorAll('.color-dot').forEach(dot => dot.classList.remove('active'));
-            
-            // Set data attribute on HTML tag
-            if (themeName === 'default') {
-                document.documentElement.removeAttribute('data-theme');
-            } else {
-                document.documentElement.setAttribute('data-theme', themeName);
-            }
-            
-            // Add active class to clicked dot
-            if(el) el.classList.add('active');
-            
-            // Persist choice
-            localStorage.setItem('preferred-accent', themeName);
-        }
-
-        // Run on load
-        window.onload = () => {
-            updateYearProgress();
-            
-            // Restore saved theme
-            const savedTheme = localStorage.getItem('preferred-accent');
-            if (savedTheme) {
-                const targetDot = document.querySelector(`.c-${savedTheme === 'default' ? 'blue' : savedTheme}`);
-                setTheme(savedTheme, targetDot);
-            }
-        };
+        window.onload = init;
     </script>
 </body>
 </html>
