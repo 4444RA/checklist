@@ -1,129 +1,206 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A+ Trade Planning Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Year Progress</title>
+    <style>
+        /* Base Theme Variables */
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #1a1a1a;
+            --accent-color: #3b82f6; /* Default Blue */
+            --bar-bg: #e5e7eb;
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        /* Dark Theme Variables (Optional secondary default) */
+        [data-theme="dark"] {
+            --bg-color: #111827;
+            --text-color: #f9fafb;
+            --bar-bg: #374151;
+        }
+
+        /* Theme Presets */
+        [data-theme="emerald"] { --accent-color: #10b981; }
+        [data-theme="rose"] { --accent-color: #f43f5e; }
+        [data-theme="amber"] { --accent-color: #f59e0b; }
+        [data-theme="violet"] { --accent-color: #8b5cf6; }
+
+        * {
+            box-sizing: border-box;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-main);
+        }
+
+        .container {
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .date-display {
+            opacity: 0.7;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        /* Progress Bar Styles */
+        .progress-wrapper {
+            background: var(--bar-bg);
+            border-radius: 100px;
+            height: 24px;
+            width: 100%;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--accent-color);
+            width: 0%; /* Animated via JS */
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 100px;
+        }
+
+        .stats {
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        /* Theme Picker Styles */
+        .theme-picker {
+            margin-top: 3rem;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .theme-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s;
+        }
+
+        .theme-dot:hover {
+            transform: scale(1.2);
+        }
+
+        .theme-dot.active {
+            border-color: var(--text-color);
+        }
+
+        /* Color Buttons */
+        .dot-blue { background: #3b82f6; }
+        .dot-emerald { background: #10b981; }
+        .dot-rose { background: #f43f5e; }
+        .dot-amber { background: #f59e0b; }
+        .dot-violet { background: #8b5cf6; }
+        .dot-dark { background: #1f2937; border: 1px solid #4b5563; }
+    </style>
 </head>
 <body>
 
     <div class="container">
-        <header>
-            <h1>A+ Trade Planning Dashboard</h1>
-            <p>A systematic process for identifying and executing high-probability trade setups. Complete this before every trade.</p>
-        </header>
+        <h1 id="year-label">2024</h1>
+        <div class="date-display" id="date-display">Today is Loading...</div>
 
-        <div class="main-grid">
-            <!-- Left Column: Parameters & Narrative -->
-            <div class="left-column">
-                <!-- Key Levels Section -->
-                <div class="section">
-                    <h2>Key Levels & Strategic Bias</h2>
-                    <p class="section-description">First, define the battlefield. What is the overall story the market is telling?</p>
-                    <div class="input-group">
-                        <label for="htf-bias">1. HTF Directional Bias (H4/Daily):</label>
-                        <select id="htf-bias">
-                            <option value="neutral">--- Select Bias ---</option>
-                            <option value="bullish">Bullish (Seeking Longs)</option>
-                            <option value="bearish">Bearish (Seeking Shorts)</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label for="liquidity-target">2. Major Liquidity Target:</label>
-                        <input type="text" id="liquidity-target" placeholder="e.g., Sell-Side Liquidity below the clean low at 98,944">
-                    </div>
-                    <div class="input-group">
-                        <label for="entry-zone">3. A+ Entry Zone (Your "Kill Zone"):</label>
-                        <input type="text" id="entry-zone" placeholder="e.g., 102,000 - 103,650 (S/R Flip + 0.382 Fib)">
-                    </div>
-                </div>
-
-                <!-- Trade Parameters Section -->
-                <div class="section">
-                    <h2>Trade Parameters & Risk-to-Reward</h2>
-                    <p class="section-description">Define your exact trade plan. The numbers must make sense before you enter.</p>
-                    <div class="input-group">
-                        <label for="entry-price">4. Planned Entry Price:</label>
-                        <input type="number" id="entry-price" placeholder="e.g., 103100">
-                    </div>
-                    <div class="input-group">
-                        <label for="stop-loss">5. Invalidation / Stop-Loss:</label>
-                        <input type="number" id="stop-loss" placeholder="e.g., 104950 (Above structural high)">
-                    </div>
-                    <div class="input-group">
-                        <label for="take-profit-1">6. Take Profit 1 (De-Risk Level):</label>
-                        <input type="number" id="take-profit-1" placeholder="e.g., 98944 (Previous swing low)">
-                    </div>
-                    <div class="rr-display">
-                        Risk/Reward to TP1: <span id="rr-value">N/A</span>
-                    </div>
-                </div>
-
-                 <!-- Narrative Section -->
-                <div class="section">
-                    <h2>Trade Plan Narrative</h2>
-                    <p class="section-description">If you can't explain the trade simply, you don't understand it well enough to take it.</p>
-                    <div class="input-group">
-                        <label for="narrative-thesis">Thesis (The "Why"):</label>
-                        <textarea id="narrative-thesis" placeholder="Why this trade? e.g., HTF is bearish after a major CHoCH. Price is now pulling back into a key HTF resistance zone where sellers previously showed strength."></textarea>
-                    </div>
-                    <div class="input-group">
-                        <label for="narrative-entry">Entry Plan (The "How"):</label>
-                        <textarea id="narrative-entry" placeholder="How will I enter? e.g., Wait for price to test the 103k level, then look for an M5 CHoCH as confirmation. Enter on the first pullback after the LTF structure breaks."></textarea>
-                    </div>
-                    <div class="input-group">
-                        <label for="narrative-invalidation">Invalidation (When is my thesis wrong?):</label>
-                        <textarea id="narrative-invalidation" placeholder="When is the idea void? e.g., A strong 4H close above the 0.5 Fib and the last swing high (~105k) would invalidate the bearish pullback thesis, suggesting a more complex correction is underway."></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Column: Checklist -->
-            <div class="right-column">
-                <form id="checklist-form">
-                    <div class="section">
-                        <h2>Confluence Checklist</h2>
-                        <!-- Tier 1 -->
-                        <h3>Tier 1: Strategic Foundation (HTF)</h3>
-                        <div class="checklist-item"><label><input type="checkbox" class="confluence-checkbox"><span>1. HTF Market Structure:</span> Does my trade direction align with the H4/Daily trend (BOS) or a confirmed shift (CHoCH)?</label></div>
-                        <div class="checklist-item"><label><input type="checkbox" class="confluence-checkbox"><span>2. HTF Liquidity Target:</span> Is there an obvious pool of liquidity (clean highs/lows) that the market is targeting, making my TP logical?</label></div>
-                        <div class="checklist-item"><label><input type="checkbox" class="confluence-checkbox"><span>3. Weekly/Daily Context:</span> Does the timing of this setup align with typical weekly patterns (e.g., mid-week trend continuation)?</label></div>
-
-                        <!-- Tier 2 -->
-                        <h3>Tier 2: Tactical Zone (MTF)</h3>
-                        <div class="checklist-item"><label><input type="checkbox" class="confluence-checkbox"><span>4. Key Price Level:</span> Is my zone anchored to a strong structural level like an S/R Flip, Order Block, or Breaker Block?</label></div>
-                        <div class="checklist-item"><label><input type="checkbox" class="confluence-checkbox"><span>5. Fibonacci Confluence:</span> Does the zone overlap with a key Fib level (0.5 - 0.786) of the preceding impulse leg?</label></div>
-                        <div class="checklist-item"><label><input type="checkbox" class="confluence-checkbox"><span>6. Imbalance / FVG Fill:</span> Is my entry mitigating a significant price inefficiency (FVG), ideally at its 50% level?</label></div>
-                        <div class="checklist-item"><label><input type="checkbox" class="confluence-checkbox"><span>7. Volume Profile:</span> Does the zone align with a High Volume Node (HVN) or Point of Control (POC), indicating a historical area of agreement/resistance?</label></div>
-                        <div class="checklist-item"><label><input type="checkbox" class="confluence-checkbox"><span>8. Moving Average Confluence:</span> Is a key MA (e.g., 21/50 EMA on H1/H4) providing dynamic resistance/support in this zone?</label></div>
-
-                        <!-- Tier 3 -->
-                        <h3>Tier 3: Execution Trigger (LTF)</h3>
-                        <div class="checklist-item"><label><input type="checkbox" class="confluence-checkbox"><span>9. Pre-entry Liquidity Sweep:</span> Has the price engineered a liquidity grab just before my entry (e.g., Three-Drive Pattern, sweep of session high)?</label></div>
-                        <div class="checklist-item"><label><input type="checkbox" class="confluence-checkbox"><span>10. <strong>LTF CHoCH Confirmation:</strong></span> Has the LTF (M5/M15) structure shifted in my favor *within my zone*, confirming order flow has flipped?</label></div>
-
-                        <!-- Tier 4 -->
-                        <h3>Tier 4: Risk Management</h3>
-                        <div class="checklist-item"><label><input type="checkbox" class="confluence-checkbox"><span>11. R:R to TP1:</span> Is the calculated Risk:Reward to my first target at least 2.5:1 or higher?</label></div>
-                        <div class="checklist-item"><label><input type="checkbox" class="confluence-checkbox"><span>12. Clear Invalidation:</span> Is my Stop-Loss placed at a logical structural level that definitively proves my thesis wrong if hit?</label></div>
-                    </div>
-                </form>
-            </div>
+        <div class="progress-wrapper">
+            <div class="progress-fill" id="progress-fill"></div>
         </div>
 
-        <div class="results-section">
-            <div id="score-display">
-                Confluence Score: 
-                <span id="score-value">0</span> / 12
-            </div>
-            <div id="score-feedback">
-                Awaiting Analysis...
-            </div>
-            <button id="reset-btn">Reset Full Plan</button>
+        <div class="stats">
+            <span id="percentage">0</span>% Complete
+        </div>
+        <p style="opacity: 0.6; font-size: 0.9rem; margin-top: 8px;">
+            <span id="days-passed">0</span> / <span id="days-total">365</span> days
+        </p>
+
+        <div class="theme-picker">
+            <div class="theme-dot dot-blue" onclick="setTheme('default')"></div>
+            <div class="theme-dot dot-emerald" onclick="setTheme('emerald')"></div>
+            <div class="theme-dot dot-rose" onclick="setTheme('rose')"></div>
+            <div class="theme-dot dot-amber" onclick="setTheme('amber')"></div>
+            <div class="theme-dot dot-violet" onclick="setTheme('violet')"></div>
+            <div class="theme-dot dot-dark" onclick="setTheme('dark')"></div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        function updateProgress() {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), 0, 0);
+            const diff = now - start;
+            const oneDay = 1000 * 60 * 60 * 24;
+            const dayOfYear = Math.floor(diff / oneDay);
+            
+            const year = now.getFullYear();
+            const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+            const totalDays = isLeapYear ? 366 : 365;
+            
+            const percent = ((dayOfYear / totalDays) * 100).toFixed(1);
+
+            // Update DOM
+            document.getElementById('year-label').innerText = year;
+            document.getElementById('date-display').innerText = now.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('days-passed').innerText = dayOfYear;
+            document.getElementById('days-total').innerText = totalDays;
+            document.getElementById('percentage').innerText = percent;
+            
+            // Animate bar
+            setTimeout(() => {
+                document.getElementById('progress-fill').style.width = percent + '%';
+            }, 100);
+        }
+
+        function setTheme(themeName) {
+            if (themeName === 'default') {
+                document.documentElement.removeAttribute('data-theme');
+            } else {
+                document.documentElement.setAttribute('data-theme', themeName);
+            }
+            
+            // Save preference
+            localStorage.setItem('user-theme', themeName);
+            
+            // Update dot UI
+            document.querySelectorAll('.theme-dot').forEach(dot => dot.classList.remove('active'));
+            // Visual feedback could be added here to highlight selected dot
+        }
+
+        // Initialize
+        window.onload = () => {
+            updateProgress();
+            
+            // Load saved theme
+            const savedTheme = localStorage.getItem('user-theme');
+            if (savedTheme) {
+                setTheme(savedTheme);
+            }
+        };
+    </script>
 </body>
 </html>
