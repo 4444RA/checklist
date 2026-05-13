@@ -14,6 +14,7 @@
             --bar-fill: #ffffff;      /* High contrast fill */
             --box-border: #333;
             --box-checked: #ffffff;
+            --today-highlight: #4a4a4a; /* Subtle highlight for current day */
         }
 
         * {
@@ -23,10 +24,10 @@
 
         body {
             margin: 0;
-            padding: 40px 0; /* Added padding for scrolling */
+            padding: 40px 0;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* Changed to start for scrollability */
+            align-items: flex-start;
             min-height: 100vh;
             background-color: var(--bg-color);
             color: var(--text-primary);
@@ -41,7 +42,7 @@
             text-align: center;
         }
 
-        /* Sophisticated Typography */
+        /* Typography */
         .year-label {
             font-size: 0.9rem;
             text-transform: uppercase;
@@ -65,7 +66,7 @@
             margin-left: 2px;
         }
 
-        /* Elegant Thin Bar */
+        /* Progress Bar */
         .progress-container {
             width: 100%;
             height: 4px;
@@ -80,10 +81,9 @@
             width: 0%;
             background: var(--bar-fill);
             transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
         }
 
-        /* Footer Info */
+        /* Info */
         .footer-info {
             display: flex;
             justify-content: space-between;
@@ -101,54 +101,61 @@
             margin-bottom: 2rem;
         }
 
-        /* Checklist Grid Styling */
-        .checklist-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(10px, 1fr));
-            gap: 6px;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
+        /* Checklist Grid */
         .month-group {
             text-align: left;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .month-title {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
             color: var(--text-secondary);
-            margin-bottom: 8px;
-            letter-spacing: 0.1em;
+            margin-bottom: 10px;
+            letter-spacing: 0.15em;
+            font-weight: 600;
         }
 
         .days-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(22px, 1fr));
+            gap: 6px;
         }
 
         .day-checkbox {
-            width: 12px;
-            height: 12px;
+            width: 24px;
+            height: 24px;
             border: 1px solid var(--box-border);
-            border-radius: 2px;
+            border-radius: 3px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: var(--text-secondary);
             transition: all 0.2s ease;
+            user-select: none;
         }
 
         .day-checkbox:hover {
-            border-color: #555;
+            border-color: #666;
         }
 
         .day-checkbox.checked {
             background-color: var(--box-checked);
             border-color: var(--box-checked);
-            box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+            color: #000; /* Dark text when checked for contrast */
+            font-weight: bold;
         }
 
-        /* Subtle Fade-in Animation */
+        /* Highlight the specific current day box */
+        .day-checkbox.is-today {
+            border-color: #888;
+            box-shadow: inset 0 0 4px rgba(255,255,255,0.1);
+            background-color: rgba(255,255,255,0.05);
+        }
+
+        /* Fade-in Animation */
         .wrapper {
             animation: fadeIn 1.2s ease-out;
         }
@@ -162,7 +169,7 @@
 <body>
 
     <div class="wrapper">
-        <div class="year-label" id="year-text">2024</div>
+        <div class="year-label" id="year-text">----</div>
         <h1 class="percentage-display"><span id="percentage">0</span><span>%</span></h1>
 
         <div class="progress-container">
@@ -176,7 +183,6 @@
 
         <div class="current-date" id="full-date">---</div>
 
-        <!-- Checklist Box -->
         <div id="calendar-root"></div>
     </div>
 
@@ -184,8 +190,10 @@
         function init() {
             const now = new Date();
             const year = now.getFullYear();
+            const currentMonth = now.getMonth();
+            const currentDate = now.getDate();
             
-            // Time math
+            // Calculate year progress
             const start = new Date(year, 0, 1);
             const end = new Date(year + 1, 0, 1);
             const totalMs = end - start;
@@ -197,29 +205,31 @@
             
             const percent = ((daysPassed / totalDays) * 100).toFixed(1);
 
+            // Update Header
             document.getElementById('year-text').innerText = year;
             document.getElementById('percentage').innerText = percent;
             document.getElementById('days-passed').innerText = daysPassed;
             document.getElementById('days-remaining').innerText = daysRemaining;
-            
             document.getElementById('full-date').innerText = now.toLocaleDateString(undefined, { 
                 weekday: 'long', 
                 month: 'long', 
                 day: 'numeric' 
             });
 
+            // Animate progress bar
             setTimeout(() => {
                 document.getElementById('progress-fill').style.width = percent + '%';
             }, 300);
 
-            generateChecklist(year);
+            // Build Checklist
+            generateChecklist(year, currentMonth, currentDate);
         }
 
-        function generateChecklist(year) {
+        function generateChecklist(year, currentMonth, currentDate) {
             const root = document.getElementById('calendar-root');
-            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             
-            months.forEach((monthName, monthIndex) => {
+            months.forEach((monthName, monthIdx) => {
                 const monthGroup = document.createElement('div');
                 monthGroup.className = 'month-group';
                 
@@ -230,27 +240,29 @@
                 const daysGrid = document.createElement('div');
                 daysGrid.className = 'days-grid';
                 
-                // Get days in this specific month
-                const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+                const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
                 
                 for (let d = 1; d <= daysInMonth; d++) {
                     const dayBox = document.createElement('div');
                     dayBox.className = 'day-checkbox';
-                    const storageKey = `checked-${year}-${monthIndex}-${d}`;
+                    dayBox.innerText = d; // Add the day number
                     
-                    // Load saved state
+                    const storageKey = `checked-${year}-${monthIdx}-${d}`;
+                    
+                    // Mark if today
+                    if (monthIdx === currentMonth && d === currentDate) {
+                        dayBox.classList.add('is-today');
+                    }
+
+                    // Load state
                     if (localStorage.getItem(storageKey) === 'true') {
                         dayBox.classList.add('checked');
                     }
                     
-                    // Toggle Click
                     dayBox.onclick = () => {
                         const isChecked = dayBox.classList.toggle('checked');
                         localStorage.setItem(storageKey, isChecked);
                     };
-                    
-                    // Optional: tooltip for date
-                    dayBox.title = `${monthName} ${d}`;
                     
                     daysGrid.appendChild(dayBox);
                 }
