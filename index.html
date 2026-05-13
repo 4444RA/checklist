@@ -7,14 +7,14 @@
     <title>Year Progress</title>
     <style>
         :root {
-            --bg-color: #121212;      /* Deep Matte Grey */
-            --text-primary: #e0e0e0;  /* Off-white */
-            --text-secondary: #757575; /* Muted Grey */
-            --bar-track: #2a2a2a;     /* Darker track */
-            --bar-fill: #ffffff;      /* High contrast fill */
+            --bg-color: #121212;
+            --text-primary: #e0e0e0;
+            --text-secondary: #757575;
+            --bar-track: #2a2a2a;
+            --bar-fill: #ffffff;
             --box-border: #333;
             --box-checked: #ffffff;
-            --today-highlight: #4a4a4a; /* Subtle highlight for current day */
+            --today-border: #888;
         }
 
         * {
@@ -24,22 +24,58 @@
 
         body {
             margin: 0;
-            padding: 40px 0;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
+            padding: 0;
             background-color: var(--bg-color);
             color: var(--text-primary);
             font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
-            letter-spacing: -0.01em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
+        /* Zoom Control Button */
+        .zoom-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+
+        .zoom-btn {
+            background: #222;
+            border: 1px solid #444;
+            color: var(--text-secondary);
+            padding: 5px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.2s;
+        }
+
+        .zoom-btn.active {
+            color: #fff;
+            border-color: #fff;
+            background: #333;
+        }
+
+        /* Main Wrapper */
         .wrapper {
             width: 100%;
             max-width: 450px;
-            padding: 20px;
+            padding: 60px 20px;
             text-align: center;
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            transform-origin: top center;
+        }
+
+        /* 2x Scale logic */
+        .wrapper.x2 {
+            transform: scale(2);
+            margin-bottom: 120vh; /* Adds space so user can scroll to bottom when scaled */
         }
 
         /* Typography */
@@ -49,7 +85,6 @@
             letter-spacing: 0.3em;
             color: var(--text-secondary);
             margin-bottom: 0.5rem;
-            font-weight: 500;
         }
 
         .percentage-display {
@@ -57,7 +92,6 @@
             font-weight: 300;
             margin: 0;
             line-height: 1;
-            color: var(--text-primary);
         }
 
         .percentage-display span {
@@ -66,7 +100,6 @@
             margin-left: 2px;
         }
 
-        /* Progress Bar */
         .progress-container {
             width: 100%;
             height: 4px;
@@ -83,13 +116,11 @@
             transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        /* Info */
         .footer-info {
             display: flex;
             justify-content: space-between;
             font-size: 0.85rem;
             color: var(--text-secondary);
-            font-weight: 400;
         }
 
         .current-date {
@@ -101,7 +132,7 @@
             margin-bottom: 2rem;
         }
 
-        /* Checklist Grid */
+        /* Checklist */
         .month-group {
             text-align: left;
             margin-bottom: 24px;
@@ -113,7 +144,6 @@
             color: var(--text-secondary);
             margin-bottom: 10px;
             letter-spacing: 0.15em;
-            font-weight: 600;
         }
 
         .days-grid {
@@ -135,24 +165,25 @@
             color: var(--text-secondary);
             transition: all 0.2s ease;
             user-select: none;
+            background: transparent;
+        }
+
+        /* Focus on Today */
+        .day-checkbox.is-today {
+            border-color: var(--today-border);
+            border-width: 1.5px;
+        }
+
+        /* Focus on Checked (highest priority) */
+        .day-checkbox.checked {
+            background-color: var(--box-checked) !important;
+            border-color: var(--box-checked) !important;
+            color: #000 !important;
+            font-weight: bold;
         }
 
         .day-checkbox:hover {
             border-color: #666;
-        }
-
-        .day-checkbox.checked {
-            background-color: var(--box-checked);
-            border-color: var(--box-checked);
-            color: #000; /* Dark text when checked for contrast */
-            font-weight: bold;
-        }
-
-        /* Highlight the specific current day box */
-        .day-checkbox.is-today {
-            border-color: #888;
-            box-shadow: inset 0 0 4px rgba(255,255,255,0.1);
-            background-color: rgba(255,255,255,0.05);
         }
 
         /* Fade-in Animation */
@@ -168,7 +199,12 @@
 </head>
 <body>
 
-    <div class="wrapper">
+    <div class="zoom-controls">
+        <button class="zoom-btn active" id="btn-1x" onclick="setZoom(1)">1x</button>
+        <button class="zoom-btn" id="btn-2x" onclick="setZoom(2)">2x</button>
+    </div>
+
+    <div class="wrapper" id="main-wrapper">
         <div class="year-label" id="year-text">----</div>
         <h1 class="percentage-display"><span id="percentage">0</span><span>%</span></h1>
 
@@ -187,13 +223,28 @@
     </div>
 
     <script>
+        function setZoom(scale) {
+            const wrapper = document.getElementById('main-wrapper');
+            const btn1 = document.getElementById('btn-1x');
+            const btn2 = document.getElementById('btn-2x');
+
+            if (scale === 2) {
+                wrapper.classList.add('x2');
+                btn2.classList.add('active');
+                btn1.classList.remove('active');
+            } else {
+                wrapper.classList.remove('x2');
+                btn1.classList.add('active');
+                btn2.classList.remove('active');
+            }
+        }
+
         function init() {
             const now = new Date();
             const year = now.getFullYear();
             const currentMonth = now.getMonth();
             const currentDate = now.getDate();
             
-            // Calculate year progress
             const start = new Date(year, 0, 1);
             const end = new Date(year + 1, 0, 1);
             const totalMs = end - start;
@@ -202,26 +253,20 @@
             const totalDays = Math.floor(totalMs / (1000 * 60 * 60 * 24));
             const daysPassed = Math.floor(passedMs / (1000 * 60 * 60 * 24)) + 1;
             const daysRemaining = totalDays - daysPassed;
-            
             const percent = ((daysPassed / totalDays) * 100).toFixed(1);
 
-            // Update Header
             document.getElementById('year-text').innerText = year;
             document.getElementById('percentage').innerText = percent;
             document.getElementById('days-passed').innerText = daysPassed;
             document.getElementById('days-remaining').innerText = daysRemaining;
             document.getElementById('full-date').innerText = now.toLocaleDateString(undefined, { 
-                weekday: 'long', 
-                month: 'long', 
-                day: 'numeric' 
+                weekday: 'long', month: 'long', day: 'numeric' 
             });
 
-            // Animate progress bar
             setTimeout(() => {
                 document.getElementById('progress-fill').style.width = percent + '%';
             }, 300);
 
-            // Build Checklist
             generateChecklist(year, currentMonth, currentDate);
         }
 
@@ -245,16 +290,14 @@
                 for (let d = 1; d <= daysInMonth; d++) {
                     const dayBox = document.createElement('div');
                     dayBox.className = 'day-checkbox';
-                    dayBox.innerText = d; // Add the day number
+                    dayBox.innerText = d;
                     
                     const storageKey = `checked-${year}-${monthIdx}-${d}`;
                     
-                    // Mark if today
                     if (monthIdx === currentMonth && d === currentDate) {
                         dayBox.classList.add('is-today');
                     }
 
-                    // Load state
                     if (localStorage.getItem(storageKey) === 'true') {
                         dayBox.classList.add('checked');
                     }
