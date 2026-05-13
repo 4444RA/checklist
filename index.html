@@ -12,6 +12,8 @@
             --text-secondary: #757575; /* Muted Grey */
             --bar-track: #2a2a2a;     /* Darker track */
             --bar-fill: #ffffff;      /* High contrast fill */
+            --box-border: #333;
+            --box-checked: #ffffff;
         }
 
         * {
@@ -21,10 +23,10 @@
 
         body {
             margin: 0;
-            padding: 0;
+            padding: 40px 0; /* Added padding for scrolling */
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* Changed to start for scrollability */
             min-height: 100vh;
             background-color: var(--bg-color);
             color: var(--text-primary);
@@ -66,7 +68,7 @@
         /* Elegant Thin Bar */
         .progress-container {
             width: 100%;
-            height: 4px; /* Thin and sleek */
+            height: 4px;
             background: var(--bar-track);
             border-radius: 2px;
             margin: 2.5rem 0;
@@ -94,8 +96,56 @@
             margin-top: 3rem;
             font-size: 0.85rem;
             color: var(--text-secondary);
-            border-top: 1px solid #222;
-            padding-top: 1.5rem;
+            border-bottom: 1px solid #222;
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Checklist Grid Styling */
+        .checklist-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(10px, 1fr));
+            gap: 6px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .month-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .month-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            letter-spacing: 0.1em;
+        }
+
+        .days-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .day-checkbox {
+            width: 12px;
+            height: 12px;
+            border: 1px solid var(--box-border);
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .day-checkbox:hover {
+            border-color: #555;
+        }
+
+        .day-checkbox.checked {
+            background-color: var(--box-checked);
+            border-color: var(--box-checked);
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
         }
 
         /* Subtle Fade-in Animation */
@@ -125,6 +175,9 @@
         </div>
 
         <div class="current-date" id="full-date">---</div>
+
+        <!-- Checklist Box -->
+        <div id="calendar-root"></div>
     </div>
 
     <script>
@@ -142,10 +195,8 @@
             const daysPassed = Math.floor(passedMs / (1000 * 60 * 60 * 24)) + 1;
             const daysRemaining = totalDays - daysPassed;
             
-            // Precision percentage
             const percent = ((daysPassed / totalDays) * 100).toFixed(1);
 
-            // Populate UI
             document.getElementById('year-text').innerText = year;
             document.getElementById('percentage').innerText = percent;
             document.getElementById('days-passed').innerText = daysPassed;
@@ -157,10 +208,57 @@
                 day: 'numeric' 
             });
 
-            // Animate Bar
             setTimeout(() => {
                 document.getElementById('progress-fill').style.width = percent + '%';
             }, 300);
+
+            generateChecklist(year);
+        }
+
+        function generateChecklist(year) {
+            const root = document.getElementById('calendar-root');
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            
+            months.forEach((monthName, monthIndex) => {
+                const monthGroup = document.createElement('div');
+                monthGroup.className = 'month-group';
+                
+                const title = document.createElement('div');
+                title.className = 'month-title';
+                title.innerText = monthName;
+                
+                const daysGrid = document.createElement('div');
+                daysGrid.className = 'days-grid';
+                
+                // Get days in this specific month
+                const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+                
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dayBox = document.createElement('div');
+                    dayBox.className = 'day-checkbox';
+                    const storageKey = `checked-${year}-${monthIndex}-${d}`;
+                    
+                    // Load saved state
+                    if (localStorage.getItem(storageKey) === 'true') {
+                        dayBox.classList.add('checked');
+                    }
+                    
+                    // Toggle Click
+                    dayBox.onclick = () => {
+                        const isChecked = dayBox.classList.toggle('checked');
+                        localStorage.setItem(storageKey, isChecked);
+                    };
+                    
+                    // Optional: tooltip for date
+                    dayBox.title = `${monthName} ${d}`;
+                    
+                    daysGrid.appendChild(dayBox);
+                }
+                
+                monthGroup.appendChild(title);
+                monthGroup.appendChild(daysGrid);
+                root.appendChild(monthGroup);
+            });
         }
 
         window.onload = init;
