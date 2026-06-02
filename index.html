@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Year Progress</title>
+    <title>Year Progress & Journal</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -15,6 +15,7 @@
             --box-border: #333;
             --box-checked: #ffffff;
             --today-border: #888;
+            --panel-bg: #1a1a1a;
         }
 
         * {
@@ -29,15 +30,43 @@
             color: var(--text-primary);
             font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
             display: flex;
+            overflow-x: hidden;
+        }
+
+        /* Layout */
+        .main-content {
+            flex: 1;
+            display: flex;
             flex-direction: column;
             align-items: center;
+            transition: margin-right 0.3s ease;
+        }
+
+        /* Sidebar Journal */
+        .journal-panel {
+            width: 350px;
+            height: 100vh;
+            background: var(--panel-bg);
+            border-left: 1px solid var(--box-border);
+            position: fixed;
+            right: -350px;
+            top: 0;
+            padding: 30px;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .journal-panel.open {
+            right: 0;
         }
 
         /* Zoom Control Button */
         .zoom-controls {
             position: fixed;
             top: 20px;
-            right: 20px;
+            left: 20px;
             z-index: 100;
             display: flex;
             gap: 10px;
@@ -52,17 +81,14 @@
             border-radius: 4px;
             font-size: 0.7rem;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
             transition: all 0.2s;
         }
 
         .zoom-btn.active {
             color: #fff;
             border-color: #fff;
-            background: #333;
         }
 
-        /* Main Wrapper */
         .wrapper {
             width: 100%;
             max-width: 450px;
@@ -72,85 +98,21 @@
             transform-origin: top center;
         }
 
-        /* 2x Scale logic */
-        .wrapper.x2 {
-            transform: scale(2);
-            margin-bottom: 120vh; /* Adds space so user can scroll to bottom when scaled */
-        }
+        .wrapper.x2 { transform: scale(2); margin-bottom: 120vh; }
 
-        /* Typography */
-        .year-label {
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.3em;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
+        /* Progress Stats */
+        .year-label { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.3em; color: var(--text-secondary); margin-bottom: 0.5rem; }
+        .percentage-display { font-size: 5rem; font-weight: 300; margin: 0; line-height: 1; }
+        .percentage-display span { font-size: 1.5rem; color: var(--text-secondary); }
+        .progress-container { width: 100%; height: 4px; background: var(--bar-track); border-radius: 2px; margin: 2.5rem 0; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; background: var(--bar-fill); transition: width 1.5s ease; }
+        .footer-info { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-secondary); }
+        .current-date { margin-top: 3rem; font-size: 0.85rem; color: var(--text-secondary); border-bottom: 1px solid #222; padding-bottom: 1.5rem; margin-bottom: 2rem; }
 
-        .percentage-display {
-            font-size: 5rem;
-            font-weight: 300;
-            margin: 0;
-            line-height: 1;
-        }
-
-        .percentage-display span {
-            font-size: 1.5rem;
-            color: var(--text-secondary);
-            margin-left: 2px;
-        }
-
-        .progress-container {
-            width: 100%;
-            height: 4px;
-            background: var(--bar-track);
-            border-radius: 2px;
-            margin: 2.5rem 0;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            width: 0%;
-            background: var(--bar-fill);
-            transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-
-        .footer-info {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        .current-date {
-            margin-top: 3rem;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            border-bottom: 1px solid #222;
-            padding-bottom: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        /* Checklist */
-        .month-group {
-            text-align: left;
-            margin-bottom: 24px;
-        }
-
-        .month-title {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-            letter-spacing: 0.15em;
-        }
-
-        .days-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(22px, 1fr));
-            gap: 6px;
-        }
+        /* Checklist Grid */
+        .month-group { text-align: left; margin-bottom: 24px; }
+        .month-title { font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 10px; letter-spacing: 0.15em; }
+        .days-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(22px, 1fr)); gap: 6px; }
 
         .day-checkbox {
             width: 24px;
@@ -163,38 +125,36 @@
             justify-content: center;
             font-size: 9px;
             color: var(--text-secondary);
-            transition: all 0.2s ease;
+            transition: background 0.2s;
             user-select: none;
-            background: transparent;
         }
 
-        /* Focus on Today */
-        .day-checkbox.is-today {
-            border-color: var(--today-border);
-            border-width: 1.5px;
-        }
+        .day-checkbox.is-today { border-color: var(--today-border); border-width: 1.5px; }
+        .day-checkbox:hover { border-color: #666; }
 
-        /* Focus on Checked (highest priority) */
-        .day-checkbox.checked {
-            background-color: var(--box-checked) !important;
-            border-color: var(--box-checked) !important;
-            color: #000 !important;
-            font-weight: bold;
-        }
+        /* Habit Coloring Logic */
+        .day-checkbox.fill-1 { background: #333; color: #fff; }
+        .day-checkbox.fill-2 { background: #666; color: #fff; }
+        .day-checkbox.fill-3 { background: #999; color: #000; }
+        .day-checkbox.fill-4 { background: #fff; color: #000; font-weight: bold; }
 
-        .day-checkbox:hover {
-            border-color: #666;
+        /* Journal Elements */
+        .journal-header { font-size: 1.2rem; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .habit-item { display: flex; align-items: center; margin-bottom: 12px; font-size: 0.9rem; cursor: pointer; }
+        .habit-item input { margin-right: 10px; accent-color: #fff; }
+        textarea {
+            flex: 1;
+            background: #111;
+            border: 1px solid #333;
+            color: #eee;
+            padding: 15px;
+            border-radius: 5px;
+            resize: none;
+            font-family: inherit;
+            margin-top: 20px;
+            line-height: 1.5;
         }
-
-        /* Fade-in Animation */
-        .wrapper {
-            animation: fadeIn 1.2s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .close-btn { position: absolute; top: 20px; right: 20px; cursor: pointer; color: var(--text-secondary); }
     </style>
 </head>
 <body>
@@ -204,70 +164,66 @@
         <button class="zoom-btn" id="btn-2x" onclick="setZoom(2)">2x</button>
     </div>
 
-    <div class="wrapper" id="main-wrapper">
-        <div class="year-label" id="year-text">----</div>
-        <h1 class="percentage-display"><span id="percentage">0</span><span>%</span></h1>
+    <div class="main-content" id="content">
+        <div class="wrapper" id="main-wrapper">
+            <div class="year-label" id="year-text">----</div>
+            <h1 class="percentage-display"><span id="percentage">0</span><span>%</span></h1>
+            <div class="progress-container"><div class="progress-fill" id="progress-fill"></div></div>
+            <div class="footer-info">
+                <span>Day <span id="days-passed">0</span></span>
+                <span><span id="days-remaining">0</span> days left</span>
+            </div>
+            <div class="current-date" id="full-date">---</div>
+            <div id="calendar-root"></div>
+        </div>
+    </div>
 
-        <div class="progress-container">
-            <div class="progress-fill" id="progress-fill"></div>
+    <!-- Right Side Journal -->
+    <div class="journal-panel" id="journal-panel">
+        <div class="close-btn" onclick="closeJournal()">✕</div>
+        <div class="journal-header" id="journal-date-title">Date</div>
+        
+        <div id="habit-checklist">
+            <label class="habit-item"><input type="checkbox" data-habit="0"> Meditate</label>
+            <label class="habit-item"><input type="checkbox" data-habit="1"> Yoga</label>
+            <label class="habit-item"><input type="checkbox" data-habit="2"> Workout</label>
+            <label class="habit-item"><input type="checkbox" data-habit="3"> Walk</label>
         </div>
 
-        <div class="footer-info">
-            <span>Day <span id="days-passed">0</span></span>
-            <span><span id="days-remaining">0</span> days left</span>
-        </div>
-
-        <div class="current-date" id="full-date">---</div>
-
-        <div id="calendar-root"></div>
+        <textarea id="journal-text" placeholder="Write about your day..."></textarea>
     </div>
 
     <script>
+        let currentEditingKey = null;
+
         function setZoom(scale) {
             const wrapper = document.getElementById('main-wrapper');
-            const btn1 = document.getElementById('btn-1x');
-            const btn2 = document.getElementById('btn-2x');
-
-            if (scale === 2) {
-                wrapper.classList.add('x2');
-                btn2.classList.add('active');
-                btn1.classList.remove('active');
-            } else {
-                wrapper.classList.remove('x2');
-                btn1.classList.add('active');
-                btn2.classList.remove('active');
-            }
+            document.getElementById('btn-1x').classList.toggle('active', scale === 1);
+            document.getElementById('btn-2x').classList.toggle('active', scale === 2);
+            wrapper.className = scale === 2 ? 'wrapper x2' : 'wrapper';
         }
 
         function init() {
             const now = new Date();
             const year = now.getFullYear();
-            const currentMonth = now.getMonth();
-            const currentDate = now.getDate();
-            
             const start = new Date(year, 0, 1);
             const end = new Date(year + 1, 0, 1);
-            const totalMs = end - start;
-            const passedMs = now - start;
-            
-            const totalDays = Math.floor(totalMs / (1000 * 60 * 60 * 24));
-            const daysPassed = Math.floor(passedMs / (1000 * 60 * 60 * 24)) + 1;
-            const daysRemaining = totalDays - daysPassed;
+            const totalDays = Math.floor((end - start) / 86400000);
+            const daysPassed = Math.floor((now - start) / 86400000) + 1;
             const percent = ((daysPassed / totalDays) * 100).toFixed(1);
 
             document.getElementById('year-text').innerText = year;
             document.getElementById('percentage').innerText = percent;
             document.getElementById('days-passed').innerText = daysPassed;
-            document.getElementById('days-remaining').innerText = daysRemaining;
+            document.getElementById('days-remaining').innerText = totalDays - daysPassed;
             document.getElementById('full-date').innerText = now.toLocaleDateString(undefined, { 
                 weekday: 'long', month: 'long', day: 'numeric' 
             });
 
-            setTimeout(() => {
-                document.getElementById('progress-fill').style.width = percent + '%';
-            }, 300);
+            setTimeout(() => { document.getElementById('progress-fill').style.width = percent + '%'; }, 300);
 
-            generateChecklist(year, currentMonth, currentDate);
+            generateChecklist(year, now.getMonth(), now.getDate());
+            setupJournalListeners();
         }
 
         function generateChecklist(year, currentMonth, currentDate) {
@@ -277,11 +233,9 @@
             months.forEach((monthName, monthIdx) => {
                 const monthGroup = document.createElement('div');
                 monthGroup.className = 'month-group';
-                
                 const title = document.createElement('div');
                 title.className = 'month-title';
                 title.innerText = monthName;
-                
                 const daysGrid = document.createElement('div');
                 daysGrid.className = 'days-grid';
                 
@@ -289,31 +243,70 @@
                 
                 for (let d = 1; d <= daysInMonth; d++) {
                     const dayBox = document.createElement('div');
+                    const dateKey = `${year}-${monthIdx}-${d}`;
                     dayBox.className = 'day-checkbox';
+                    dayBox.id = `day-${dateKey}`;
                     dayBox.innerText = d;
                     
-                    const storageKey = `checked-${year}-${monthIdx}-${d}`;
-                    
-                    if (monthIdx === currentMonth && d === currentDate) {
-                        dayBox.classList.add('is-today');
-                    }
+                    if (monthIdx === currentMonth && d === currentDate) dayBox.classList.add('is-today');
 
-                    if (localStorage.getItem(storageKey) === 'true') {
-                        dayBox.classList.add('checked');
-                    }
-                    
-                    dayBox.onclick = () => {
-                        const isChecked = dayBox.classList.toggle('checked');
-                        localStorage.setItem(storageKey, isChecked);
-                    };
-                    
+                    updateBoxVisuals(dayBox, dateKey);
+
+                    dayBox.onclick = () => openJournal(dateKey, monthName, d);
                     daysGrid.appendChild(dayBox);
                 }
-                
                 monthGroup.appendChild(title);
                 monthGroup.appendChild(daysGrid);
                 root.appendChild(monthGroup);
             });
+        }
+
+        function openJournal(key, month, day) {
+            currentEditingKey = key;
+            const data = JSON.parse(localStorage.getItem(key)) || { text: "", habits: [false, false, false, false] };
+            
+            document.getElementById('journal-date-title').innerText = `${month} ${day}`;
+            document.getElementById('journal-text').value = data.text;
+            
+            const checkboxes = document.querySelectorAll('#habit-checklist input');
+            checkboxes.forEach((cb, i) => cb.checked = data.habits[i]);
+
+            document.getElementById('journal-panel').classList.add('open');
+        }
+
+        function closeJournal() {
+            document.getElementById('journal-panel').classList.remove('open');
+            currentEditingKey = null;
+        }
+
+        function setupJournalListeners() {
+            const text = document.getElementById('journal-text');
+            const habits = document.querySelectorAll('#habit-checklist input');
+
+            const saveData = () => {
+                if (!currentEditingKey) return;
+                const habitValues = Array.from(habits).map(cb => cb.checked);
+                const data = {
+                    text: text.value,
+                    habits: habitValues
+                };
+                localStorage.setItem(currentEditingKey, JSON.stringify(data));
+                updateBoxVisuals(document.getElementById(`day-${currentEditingKey}`), currentEditingKey);
+            };
+
+            text.oninput = saveData;
+            habits.forEach(cb => cb.onchange = saveData);
+        }
+
+        function updateBoxVisuals(element, key) {
+            if (!element) return;
+            const data = JSON.parse(localStorage.getItem(key));
+            element.classList.remove('fill-1', 'fill-2', 'fill-3', 'fill-4');
+            
+            if (data && data.habits) {
+                const count = data.habits.filter(h => h === true).length;
+                if (count > 0) element.classList.add(`fill-${count}`);
+            }
         }
 
         window.onload = init;
