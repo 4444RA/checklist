@@ -33,6 +33,7 @@
             display: flex; 
             overflow-x: hidden;
             min-height: 100vh;
+            cursor: default; /* NORMAL CURSOR */
         }
 
         /* Layout */
@@ -42,14 +43,13 @@
             flex-direction: column; 
             align-items: center; 
             transition: margin-right 0.3s ease;
-            cursor: pointer; /* Indicates background is clickable */
+            cursor: default; /* NORMAL CURSOR */
         }
 
         .journal-panel {
             width: 350px; height: 100vh; background: var(--panel-bg); border-left: 1px solid var(--box-border);
             position: fixed; right: -350px; top: 0; padding: 30px; transition: right 0.3s ease;
             display: flex; flex-direction: column; z-index: 1000; box-shadow: -10px 0 30px rgba(0,0,0,0.5);
-            cursor: default; /* Reset cursor inside panel */
         }
         .journal-panel.open { right: 0; }
 
@@ -65,7 +65,7 @@
         .progress-fill { height: 100%; width: 0%; background: var(--bar-fill); transition: width 1.5s ease; }
         .current-date { margin-top: 3rem; font-size: 0.85rem; color: var(--text-secondary); border-bottom: 1px solid #222; padding-bottom: 1.5rem; margin-bottom: 2rem; }
 
-        .month-group { text-align: left; margin-bottom: 24px; cursor: default; }
+        .month-group { text-align: left; margin-bottom: 24px; }
         .month-title { font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 10px; letter-spacing: 0.15em; }
         .days-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(24px, 1fr)); gap: 6px; }
 
@@ -93,12 +93,13 @@
 
         .journal-header { font-size: 1.2rem; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .habit-item { display: flex; align-items: center; margin-bottom: 12px; font-size: 0.9rem; cursor: pointer; }
-        .habit-item input { margin-right: 10px; }
+        .habit-item input { margin-right: 10px; cursor: pointer; }
         
         textarea {
             flex: 1; background: #111; border: 1px solid #333; border-left: none; border-right: none;
             color: #eee; padding: 20px 30px; resize: none; font-family: inherit; margin-top: 20px; line-height: 1.5;
             width: calc(100% + 60px); margin-left: -30px; margin-right: -30px; outline: none;
+            cursor: text; /* CURSOR FOR TYPING */
         }
         .close-btn { position: absolute; top: 20px; right: 20px; cursor: pointer; color: var(--text-secondary); }
     </style>
@@ -206,7 +207,7 @@
 
                     updateBoxVisuals(dayBox, dateKey);
                     dayBox.onclick = (e) => {
-                        e.stopPropagation(); // Prevents the background click (toggle) from firing
+                        e.stopPropagation(); 
                         openJournal(dateKey, monthName, d);
                     };
                     daysGrid.appendChild(dayBox);
@@ -233,14 +234,12 @@
         }
 
         function setupInteractions() {
-            // SINGLE CLICK on background toggles Today's Journal
             document.getElementById('body-root').addEventListener('click', (e) => {
                 const panel = document.getElementById('journal-panel');
                 const isPanel = e.target.closest('.journal-panel');
                 const isDayBox = e.target.closest('.day-checkbox');
                 const isZoom = e.target.closest('.zoom-controls');
 
-                // If clicking inside panel, on a day box, or zoom buttons, do nothing here
                 if (isPanel || isDayBox || isZoom) return;
 
                 if (panel.classList.contains('open')) {
