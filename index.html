@@ -169,6 +169,22 @@ body::before {
     0% { transform: scale(1); opacity: 1; }
     100% { transform: scale(1.5); opacity: 0; }
 }
+
+
+
+
+
+
+
+
+        .main-content {
+    transition: filter 0.4s ease, transform 0.4s ease;
+}
+
+body:has(.journal-panel.open) .main-content {
+    filter: blur(4px) brightness(0.5);
+    transform: scale(0.98);
+}
     </style>
 </head>
 <body id="body-root">
