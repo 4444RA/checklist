@@ -151,6 +151,24 @@ body::before {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
 }
+
+
+
+
+
+        .day-checkbox.is-today::after {
+    content: '';
+    position: absolute;
+    top: -4px; left: -4px; right: -4px; bottom: -4px;
+    border: 1px solid var(--today-border);
+    border-radius: 6px;
+    animation: radar 2s infinite;
+}
+
+@keyframes radar {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
     </style>
 </head>
 <body id="body-root">
