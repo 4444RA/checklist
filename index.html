@@ -113,78 +113,13 @@
     border-left: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
-/* Add a subtle grain texture to the body for a "paper" feel */
-body::before {
-    content: "";
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background-image: url('https://grainy-gradients.vercel.app/noise.svg');
-    opacity: 0.03;
-    pointer-events: none;
-    z-index: 9999;
-}
-
-
-
-
 
         
-.percentage-display {
-    font-family: 'Courier New', Courier, monospace; /* Or a premium font like "Inter" */
-    letter-spacing: -2px;
-    animation: pulse 4s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.8; transform: scale(0.98); }
-}
-
-.progress-fill {
-    /* Give the progress bar a subtle "shimmer" */
-    background: linear-gradient(90deg, #fff, #888, #fff);
-    background-size: 200% 100%;
-    animation: shimmer 3s infinite linear;
-}
-
-@keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-}
 
 
 
 
 
-        .day-checkbox.is-today::after {
-    content: '';
-    position: absolute;
-    top: -4px; left: -4px; right: -4px; bottom: -4px;
-    border: 1px solid var(--today-border);
-    border-radius: 6px;
-    animation: radar 2s infinite;
-}
-
-@keyframes radar {
-    0% { transform: scale(1); opacity: 1; }
-    100% { transform: scale(1.5); opacity: 0; }
-}
-
-
-
-
-
-
-
-
-        .main-content {
-    transition: filter 0.4s ease, transform 0.4s ease;
-}
-
-body:has(.journal-panel.open) .main-content {
-    filter: blur(4px) brightness(0.5);
-    transform: scale(0.98);
-}
     </style>
 </head>
 <body id="body-root">
