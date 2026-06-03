@@ -68,15 +68,24 @@
             margin-top: 20px;
             overflow: visible;
         }
-        .pikachu {
-            position: absolute;
-            height: 45px;
-            bottom: 0;
-            left: 0%; /* Adjusted by JS */
-            transform: translateX(50%);
-            image-rendering: pixelated; /* Keeps pixel art sharp */
-            transition: left 1.5s ease;
-        }
+/* PIKACHU TRACKER STYLES */
+.mascot-container {
+    width: 100%;
+    height: 100px;      /* Increased from 50px to fit larger mascot */
+    position: relative;
+    margin-top: 20px;
+    overflow: visible;
+}
+
+.pikachu {
+    position: absolute;
+    height: 90px;       /* Increased from 45px - Adjust this to change size */
+    bottom: 0;
+    left: 0%; 
+    transform: translateX(-50%);
+    image-rendering: pixelated; 
+    transition: left 1.5s ease;
+}
 
         .progress-container { width: 100%; height: 4px; background: var(--bar-track); border-radius: 2px; margin-bottom: 2.5rem; overflow: hidden; }
         .progress-fill { height: 100%; width: 0%; background: var(--bar-fill); transition: width 1.5s ease; }
