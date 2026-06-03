@@ -102,6 +102,27 @@
             cursor: text; /* CURSOR FOR TYPING */
         }
         .close-btn { position: absolute; top: 20px; right: 20px; cursor: pointer; color: var(--text-secondary); }
+
+
+
+
+        .journal-panel {
+    background: rgba(26, 26, 26, 0.8) !important; /* Semi-transparent */
+    backdrop-filter: blur(20px); /* The "Glass" effect */
+    -webkit-backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Add a subtle grain texture to the body for a "paper" feel */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: url('https://grainy-gradients.vercel.app/noise.svg');
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 9999;
+}
     </style>
 </head>
 <body id="body-root">
