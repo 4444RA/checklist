@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,7 +36,7 @@
             display: flex; 
             overflow-x: hidden;
             min-height: 100vh;
-            min-height: 100dvh; /* Dynamic viewport height for mobile browsers */
+            min-height: 100dvh;
             cursor: default;
         }
 
@@ -52,7 +51,7 @@
             width: 100%;
         }
 
-        /* Premium Glass Journal Panel (Responsive for iPhone) */
+        /* Premium Glass Journal Panel */
         .journal-panel {
             width: 100%;
             max-width: 380px; 
@@ -105,7 +104,6 @@
             transform-origin: top center; 
         }
         
-        /* Adjust scale factor on smaller mobile screens to avoid clipping */
         @media (max-width: 480px) {
             .wrapper.x2 { transform: scale(1.3); margin-bottom: 30vh; }
         }
@@ -119,42 +117,50 @@
         
         .current-date { margin-top: 1.5rem; font-size: 0.8rem; color: var(--text-secondary); border-bottom: 1px solid #1a1a1a; padding-bottom: 1.5rem; margin-bottom: 2rem; text-transform: uppercase; letter-spacing: 0.2em; }
 
-        /* Style for Toggle Button */
-        .toggle-past-btn {
+        /* Premium Segmented Controls for Calendar Views */
+        .view-controls {
+            display: inline-flex;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 3px;
+            margin-bottom: 28px;
+        }
+        .view-btn {
             background: transparent;
-            border: 1px dashed #333;
+            border: none;
             color: var(--text-secondary);
-            padding: 8px 16px;
+            padding: 6px 14px;
             font-size: 0.7rem;
             border-radius: 6px;
             cursor: pointer;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 24px;
+            letter-spacing: 0.05em;
             transition: all 0.2s ease;
-            display: inline-block;
         }
-        .toggle-past-btn:active, .toggle-past-btn:hover {
-            border-color: #666;
+        .view-btn.active {
+            background: rgba(255, 255, 255, 0.1);
             color: #fff;
-            background: rgba(255, 255, 255, 0.03);
         }
 
+        /* Calendar Display States */
         .month-group { text-align: left; margin-bottom: 32px; }
-        
-        /* Hidden state for past months */
-        .month-group.past {
+
+        /* Default: View only current month (Past and Future are hidden) */
+        .calendar-container.view-current .month-group.past,
+        .calendar-container.view-current .month-group.future {
             display: none;
         }
-        /* Reveal state when toggled active */
-        .calendar-container.show-past .month-group.past {
+
+        /* Full Year state: View everything */
+        .calendar-container.view-year .month-group.past,
+        .calendar-container.view-year .month-group.future {
             display: block;
         }
 
         .month-title { font-size: 0.7rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 12px; letter-spacing: 0.2em; font-weight: 600; opacity: 0.5; }
         .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
 
-        /* Checklist Squares optimized for tap targets on mobile */
         .day-checkbox {
             aspect-ratio: 1;
             width: 100%;
@@ -182,17 +188,62 @@
             pointer-events: none; z-index: 2;
         }
 
-        /* Journal Components - Font sizes set to 16px to prevent iOS Safari auto-zoom */
+        /* Journal Panel - Custom Checked Box Styles */
         .journal-header { font-size: 1.4rem; font-weight: 300; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; padding-right: 30px; }
-        .habit-item { display: flex; align-items: center; margin-bottom: 18px; font-size: 1rem; cursor: pointer; color: #ccc; transition: color 0.2s; padding: 4px 0; }
-        .habit-item input { margin-right: 14px; width: 20px; height: 20px; cursor: pointer; accent-color: #fff; }
+        
+        .habit-item { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 18px; 
+            font-size: 1rem; 
+            cursor: pointer; 
+            color: #ccc; 
+            user-select: none;
+            padding: 4px 0; 
+        }
+        .habit-item input { 
+            display: none; /* Hide native checkbox */
+        }
+        
+        /* Custom Checkbox Design */
+        .custom-checkbox {
+            width: 22px;
+            height: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 6px;
+            margin-right: 14px;
+            display: inline-block;
+            position: relative;
+            background: rgba(0, 0, 0, 0.3);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            flex-shrink: 0;
+        }
+        
+        /* Active Checked State */
+        .habit-item input:checked + .custom-checkbox {
+            background: #ffffff;
+            border-color: #ffffff;
+        }
+        
+        /* Custom Checkmark rendering */
+        .habit-item input:checked + .custom-checkbox::after {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 3px;
+            width: 5px;
+            height: 10px;
+            border: solid #000000;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
         
         textarea {
             flex: 1; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255,255,255,0.05);
             border-left: none; border-right: none;
             color: #eee; padding: 20px 24px; resize: none; font-family: inherit; margin-top: 25px; line-height: 1.6;
             width: calc(100% + 48px); margin-left: -24px; margin-right: -24px; outline: none;
-            cursor: text; font-size: 16px; /* Prevents auto zoom-in on iPhone */
+            cursor: text; font-size: 16px;
         }
         
         .close-btn { 
@@ -222,9 +273,13 @@
         <div class="progress-container"><div class="progress-fill" id="progress-fill"></div></div>
         <div class="current-date" id="full-date">---</div>
         
-        <button id="toggle-past-btn" class="toggle-past-btn" onclick="togglePastMonths()" style="display: none;">Show Past Months</button>
+        <!-- Premium Selector to easily isolate views -->
+        <div class="view-controls">
+            <button class="view-btn active" id="view-current-btn" onclick="setViewMode('current')">Current Month</button>
+            <button class="view-btn" id="view-year-btn" onclick="setViewMode('year')">Full Year</button>
+        </div>
         
-        <div id="calendar-root" class="calendar-container"></div>
+        <div id="calendar-root" class="calendar-container view-current"></div>
     </div>
 </div>
 
@@ -232,17 +287,32 @@
     <div class="close-btn" onclick="closeJournal()">✕</div>
     <div class="journal-header" id="journal-date-title">Date</div>
     <div id="habit-checklist">
-        <label class="habit-item"><input type="checkbox" data-habit="0"> Meditate</label>
-        <label class="habit-item"><input type="checkbox" data-habit="1"> Yoga</label>
-        <label class="habit-item"><input type="checkbox" data-habit="2"> Workout</label>
-        <label class="habit-item"><input type="checkbox" data-habit="3"> Walk</label>
+        <label class="habit-item">
+            <input type="checkbox" data-habit="0">
+            <span class="custom-checkbox"></span>
+            Meditate
+        </label>
+        <label class="habit-item">
+            <input type="checkbox" data-habit="1">
+            <span class="custom-checkbox"></span>
+            Yoga
+        </label>
+        <label class="habit-item">
+            <input type="checkbox" data-habit="2">
+            <span class="custom-checkbox"></span>
+            Workout
+        </label>
+        <label class="habit-item">
+            <input type="checkbox" data-habit="3">
+            <span class="custom-checkbox"></span>
+            Walk
+        </label>
     </div>
     <textarea id="journal-text" placeholder="What happened today?"></textarea>
 </div>
 
 <script>
     let currentEditingKey = null;
-    let showingPastMonths = false;
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
     function getPerthTime() {
@@ -264,17 +334,19 @@
         wrapper.className = scale === 2 ? 'wrapper x2' : 'wrapper';
     }
 
-    function togglePastMonths() {
+    function setViewMode(mode) {
         const container = document.getElementById('calendar-root');
-        const btn = document.getElementById('toggle-past-btn');
-        showingPastMonths = !showingPastMonths;
-        
-        if (showingPastMonths) {
-            container.classList.add('show-past');
-            btn.innerText = "Hide Past Months";
+        const currentBtn = document.getElementById('view-current-btn');
+        const yearBtn = document.getElementById('view-year-btn');
+
+        if (mode === 'current') {
+            container.className = "calendar-container view-current";
+            currentBtn.classList.add('active');
+            yearBtn.classList.remove('active');
         } else {
-            container.classList.remove('show-past');
-            btn.innerText = "Show Past Months";
+            container.className = "calendar-container view-year";
+            currentBtn.classList.remove('active');
+            yearBtn.classList.add('active');
         }
     }
 
@@ -292,11 +364,6 @@
         const dateOptions = { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'Australia/Perth' };
         document.getElementById('full-date').innerText = new Intl.DateTimeFormat('en-US', dateOptions).format(new Date());
 
-        // Display toggle button only if we have passed months in the current year
-        if (currentMonth > 0) {
-            document.getElementById('toggle-past-btn').style.display = 'inline-block';
-        }
-
         setTimeout(() => { document.getElementById('progress-fill').style.width = percent + '%'; }, 300);
         generateChecklist(year, currentMonth, nowPerth.getDate());
         setupJournalListeners();
@@ -311,9 +378,13 @@
             const monthGroup = document.createElement('div');
             monthGroup.className = 'month-group';
             
-            // Mark older months with "past" class so they remain hidden on start
+            // Tag past/future months so CSS rules can hide/reveal them properly
             if (monthIdx < currentMonth) {
                 monthGroup.classList.add('past');
+            } else if (monthIdx > currentMonth) {
+                monthGroup.classList.add('future');
+            } else {
+                monthGroup.classList.add('current');
             }
 
             const title = document.createElement('div');
@@ -342,7 +413,6 @@
 
                 updateBoxVisuals(dayBox, dateKey);
                 
-                // Optimized touch engagement for mobile tap behavior
                 dayBox.addEventListener('click', (e) => {
                     e.stopPropagation(); 
                     openJournal(dateKey, monthName, d);
@@ -377,9 +447,9 @@
             const isPanel = e.target.closest('.journal-panel');
             const isDayBox = e.target.closest('.day-checkbox');
             const isZoom = e.target.closest('.zoom-controls');
-            const isTogglePast = e.target.closest('#toggle-past-btn');
+            const isViewCtrls = e.target.closest('.view-controls');
 
-            if (isPanel || isDayBox || isZoom || isTogglePast) return;
+            if (isPanel || isDayBox || isZoom || isViewCtrls) return;
 
             if (panel.classList.contains('open')) {
                 closeJournal();
