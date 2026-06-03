@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Year Progress & Journal (Perth Time)</title>
+    <title>Year Progress & Journal</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -24,7 +24,16 @@
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
-        body { margin: 0; background-color: var(--bg-color); color: var(--text-primary); font-family: -apple-system, BlinkMacSystemFont, "Inter", sans-serif; display: flex; overflow-x: hidden; }
+        
+        body { 
+            margin: 0; 
+            background-color: var(--bg-color); 
+            color: var(--text-primary); 
+            font-family: -apple-system, BlinkMacSystemFont, "Inter", sans-serif; 
+            display: flex; 
+            overflow-x: hidden;
+            user-select: none; /* Prevents text highlighting on fast double-clicks */
+        }
 
         .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; transition: margin-right 0.3s ease; }
 
@@ -42,7 +51,8 @@
         .wrapper { width: 100%; max-width: 450px; padding: 60px 20px; text-align: center; transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); transform-origin: top center; }
         .wrapper.x2 { transform: scale(2); margin-bottom: 120vh; }
 
-        .percentage-display { font-size: 5rem; font-weight: 300; margin: 0; line-height: 1; }
+        /* Removed Year Label styles - keeping it clean */
+        .percentage-display { font-size: 5rem; font-weight: 300; margin: 0; line-height: 1; padding-top: 20px;}
         .progress-container { width: 100%; height: 4px; background: var(--bar-track); border-radius: 2px; margin: 2.5rem 0; overflow: hidden; }
         .progress-fill { height: 100%; width: 0%; background: var(--bar-fill); transition: width 1.5s ease; }
         .current-date { margin-top: 3rem; font-size: 0.85rem; color: var(--text-secondary); border-bottom: 1px solid #222; padding-bottom: 1.5rem; margin-bottom: 2rem; }
@@ -51,7 +61,6 @@
         .month-title { font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 10px; letter-spacing: 0.15em; }
         .days-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(24px, 1fr)); gap: 6px; }
 
-        /* THE UPDATED QUADRANT BOX */
         .day-checkbox {
             width: 26px; height: 26px; border: 1px solid var(--box-border); border-radius: 3px;
             cursor: pointer; position: relative; display: grid;
@@ -74,16 +83,14 @@
             pointer-events: none; z-index: 2;
         }
 
-        /* Journal Elements */
         .journal-header { font-size: 1.2rem; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .habit-item { display: flex; align-items: center; margin-bottom: 12px; font-size: 0.9rem; cursor: pointer; }
         .habit-item input { margin-right: 10px; }
         
-        /* Updated Sidebar Textarea: No side spacing */
         textarea {
             flex: 1; background: #111; border: 1px solid #333; border-left: none; border-right: none;
-            color: #eee; padding: 15px 30px; resize: none; font-family: inherit; margin-top: 20px; line-height: 1.5;
-            width: calc(100% + 60px); margin-left: -30px; margin-right: -30px;
+            color: #eee; padding: 20px 30px; resize: none; font-family: inherit; margin-top: 20px; line-height: 1.5;
+            width: calc(100% + 60px); margin-left: -30px; margin-right: -30px; outline: none;
         }
         .close-btn { position: absolute; top: 20px; right: 20px; cursor: pointer; color: var(--text-secondary); }
     </style>
@@ -97,7 +104,7 @@
 
     <div class="main-content" id="content">
         <div class="wrapper" id="main-wrapper">
-            <div class="year-label" id="year-text">----</div>
+            <!-- Year Label Removed for Cleanliness -->
             <h1 class="percentage-display"><span id="percentage">0</span><span>%</span></h1>
             <div class="progress-container"><div class="progress-fill" id="progress-fill"></div></div>
             <div class="current-date" id="full-date">---</div>
@@ -119,6 +126,7 @@
 
     <script>
         let currentEditingKey = null;
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
         function getPerthTime() {
             const now = new Date();
@@ -148,7 +156,6 @@
             const daysPassed = Math.floor((nowPerth - startOfYear) / 86400000) + 1;
             const percent = ((daysPassed / totalDays) * 100).toFixed(1);
 
-            document.getElementById('year-text').innerText = year;
             document.getElementById('percentage').innerText = percent;
             const dateOptions = { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'Australia/Perth' };
             document.getElementById('full-date').innerText = new Intl.DateTimeFormat('en-US', dateOptions).format(new Date());
@@ -156,13 +163,12 @@
             setTimeout(() => { document.getElementById('progress-fill').style.width = percent + '%'; }, 300);
             generateChecklist(year, nowPerth.getMonth(), nowPerth.getDate());
             setupJournalListeners();
-            setupClickOutside();
+            setupInteractions();
         }
 
         function generateChecklist(year, currentMonth, currentDate) {
             const root = document.getElementById('calendar-root');
             root.innerHTML = '';
-            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             
             months.forEach((monthName, monthIdx) => {
                 const monthGroup = document.createElement('div');
@@ -179,7 +185,6 @@
                     dayBox.className = 'day-checkbox';
                     dayBox.id = `day-${dateKey}`;
                     
-                    // Add 4 quadrants
                     for (let i = 0; i < 4; i++) {
                         const q = document.createElement('div');
                         q.className = `q q-${i}`;
@@ -193,7 +198,10 @@
                     if (monthIdx === currentMonth && d === currentDate) dayBox.classList.add('is-today');
 
                     updateBoxVisuals(dayBox, dateKey);
-                    dayBox.onclick = () => openJournal(dateKey, monthName, d);
+                    dayBox.onclick = (e) => {
+                        e.stopPropagation(); // Prevent trigger global double click
+                        openJournal(dateKey, monthName, d);
+                    };
                     daysGrid.appendChild(dayBox);
                 }
                 monthGroup.appendChild(title);
@@ -217,12 +225,23 @@
             currentEditingKey = null;
         }
 
-        function setupClickOutside() {
+        function setupInteractions() {
+            // Auto-close on click outside
             document.addEventListener('mousedown', (e) => {
                 const panel = document.getElementById('journal-panel');
                 if (panel.classList.contains('open') && !panel.contains(e.target) && !e.target.closest('.day-checkbox')) {
                     closeJournal();
                 }
+            });
+
+            // Double click anywhere to open Today's Journal
+            window.addEventListener('dblclick', (e) => {
+                // Don't trigger if clicking inside the panel or on a specific day box
+                if (e.target.closest('.journal-panel') || e.target.closest('.day-checkbox')) return;
+                
+                const now = getPerthTime();
+                const todayKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+                openJournal(todayKey, months[now.getMonth()], now.getDate());
             });
         }
 
