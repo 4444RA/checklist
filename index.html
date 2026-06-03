@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Year Progress & Journal</title>
+    <title>Year Progress & Journal (Perth Time)</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -14,7 +14,7 @@
             --bar-fill: #ffffff;
             --box-border: #333;
             --box-checked: #ffffff;
-            --today-border: #888;
+            --today-border: #4caf50; /* CHANGED: Now Green */
             --panel-bg: #1a1a1a;
         }
 
@@ -56,6 +56,7 @@
             display: flex;
             flex-direction: column;
             z-index: 1000;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
         }
 
         .journal-panel.open {
@@ -129,7 +130,11 @@
             user-select: none;
         }
 
-        .day-checkbox.is-today { border-color: var(--today-border); border-width: 1.5px; }
+        .day-checkbox.is-today { 
+            border-color: var(--today-border); 
+            border-width: 2px; 
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+        }
         .day-checkbox:hover { border-color: #666; }
 
         /* Habit Coloring Logic */
@@ -178,7 +183,6 @@
         </div>
     </div>
 
-    <!-- Right Side Journal -->
     <div class="journal-panel" id="journal-panel">
         <div class="close-btn" onclick="closeJournal()">✕</div>
         <div class="journal-header" id="journal-date-title">Date</div>
@@ -196,6 +200,19 @@
     <script>
         let currentEditingKey = null;
 
+        function getPerthTime() {
+            const now = new Date();
+            const formatter = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'Australia/Perth',
+                year: 'numeric', month: 'numeric', day: 'numeric',
+                hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false
+            });
+            const parts = formatter.formatToParts(now);
+            const d = {};
+            parts.forEach(p => d[p.type] = p.value);
+            return new Date(d.year, d.month - 1, d.day, d.hour, d.minute, d.second);
+        }
+
         function setZoom(scale) {
             const wrapper = document.getElementById('main-wrapper');
             document.getElementById('btn-1x').classList.toggle('active', scale === 1);
@@ -204,30 +221,34 @@
         }
 
         function init() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const start = new Date(year, 0, 1);
-            const end = new Date(year + 1, 0, 1);
-            const totalDays = Math.floor((end - start) / 86400000);
-            const daysPassed = Math.floor((now - start) / 86400000) + 1;
+            const nowPerth = getPerthTime();
+            const year = nowPerth.getFullYear();
+            const startOfYear = new Date(year, 0, 1);
+            const endOfYear = new Date(year + 1, 0, 1);
+            const totalMs = endOfYear - startOfYear;
+            const passedMs = nowPerth - startOfYear;
+            const totalDays = Math.floor(totalMs / 86400000);
+            const daysPassed = Math.floor(passedMs / 86400000) + 1;
             const percent = ((daysPassed / totalDays) * 100).toFixed(1);
 
             document.getElementById('year-text').innerText = year;
             document.getElementById('percentage').innerText = percent;
             document.getElementById('days-passed').innerText = daysPassed;
             document.getElementById('days-remaining').innerText = totalDays - daysPassed;
-            document.getElementById('full-date').innerText = now.toLocaleDateString(undefined, { 
-                weekday: 'long', month: 'long', day: 'numeric' 
-            });
+
+            const dateOptions = { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'Australia/Perth' };
+            document.getElementById('full-date').innerText = new Intl.DateTimeFormat('en-US', dateOptions).format(new Date());
 
             setTimeout(() => { document.getElementById('progress-fill').style.width = percent + '%'; }, 300);
 
-            generateChecklist(year, now.getMonth(), now.getDate());
+            generateChecklist(year, nowPerth.getMonth(), nowPerth.getDate());
             setupJournalListeners();
+            setupClickOutside();
         }
 
         function generateChecklist(year, currentMonth, currentDate) {
             const root = document.getElementById('calendar-root');
+            root.innerHTML = '';
             const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             
             months.forEach((monthName, monthIdx) => {
@@ -251,7 +272,6 @@
                     if (monthIdx === currentMonth && d === currentDate) dayBox.classList.add('is-today');
 
                     updateBoxVisuals(dayBox, dateKey);
-
                     dayBox.onclick = () => openJournal(dateKey, monthName, d);
                     daysGrid.appendChild(dayBox);
                 }
@@ -264,13 +284,10 @@
         function openJournal(key, month, day) {
             currentEditingKey = key;
             const data = JSON.parse(localStorage.getItem(key)) || { text: "", habits: [false, false, false, false] };
-            
             document.getElementById('journal-date-title').innerText = `${month} ${day}`;
             document.getElementById('journal-text').value = data.text;
-            
             const checkboxes = document.querySelectorAll('#habit-checklist input');
             checkboxes.forEach((cb, i) => cb.checked = data.habits[i]);
-
             document.getElementById('journal-panel').classList.add('open');
         }
 
@@ -279,21 +296,29 @@
             currentEditingKey = null;
         }
 
+        // NEW: Auto-close logic
+        function setupClickOutside() {
+            document.addEventListener('mousedown', (e) => {
+                const panel = document.getElementById('journal-panel');
+                // Check if click is NOT inside panel AND NOT on a day box
+                if (panel.classList.contains('open') && 
+                    !panel.contains(e.target) && 
+                    !e.target.closest('.day-checkbox')) {
+                    closeJournal();
+                }
+            });
+        }
+
         function setupJournalListeners() {
             const text = document.getElementById('journal-text');
             const habits = document.querySelectorAll('#habit-checklist input');
-
             const saveData = () => {
                 if (!currentEditingKey) return;
                 const habitValues = Array.from(habits).map(cb => cb.checked);
-                const data = {
-                    text: text.value,
-                    habits: habitValues
-                };
+                const data = { text: text.value, habits: habitValues };
                 localStorage.setItem(currentEditingKey, JSON.stringify(data));
                 updateBoxVisuals(document.getElementById(`day-${currentEditingKey}`), currentEditingKey);
             };
-
             text.oninput = saveData;
             habits.forEach(cb => cb.onchange = saveData);
         }
@@ -302,7 +327,6 @@
             if (!element) return;
             const data = JSON.parse(localStorage.getItem(key));
             element.classList.remove('fill-1', 'fill-2', 'fill-3', 'fill-4');
-            
             if (data && data.habits) {
                 const count = data.habits.filter(h => h === true).length;
                 if (count > 0) element.classList.add(`fill-${count}`);
