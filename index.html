@@ -33,15 +33,17 @@
             display: flex; 
             overflow-x: hidden;
             min-height: 100vh;
-            cursor: default;
+            cursor: default; /* NORMAL CURSOR */
         }
 
+        /* Layout */
         .main-content { 
             flex: 1; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
             transition: margin-right 0.3s ease;
+            cursor: default; /* NORMAL CURSOR */
         }
 
         .journal-panel {
@@ -59,35 +61,7 @@
         .wrapper.x2 { transform: scale(2); margin-bottom: 120vh; }
 
         .percentage-display { font-size: 5rem; font-weight: 300; margin: 0; line-height: 1; padding-top: 20px;}
-        
-        /* PIKACHU TRACKER STYLES */
-        .mascot-container {
-            width: 100%;
-            height: 50px;
-            position: relative;
-            margin-top: 20px;
-            overflow: visible;
-        }
-/* PIKACHU TRACKER STYLES */
-.mascot-container {
-    width: 100%;
-    height: 100px;      /* Increased from 50px to fit larger mascot */
-    position: relative;
-    margin-top: 20px;
-    overflow: visible;
-}
-
-.pikachu {
-    position: absolute;
-    height: 90px;       /* Increased from 45px - Adjust this to change size */
-    bottom: 0;
-    left: 0%; 
-    transform: translateX(-50%);
-    image-rendering: pixelated; 
-    transition: left 1.5s ease;
-}
-
-        .progress-container { width: 100%; height: 4px; background: var(--bar-track); border-radius: 2px; margin-bottom: 2.5rem; overflow: hidden; }
+        .progress-container { width: 100%; height: 4px; background: var(--bar-track); border-radius: 2px; margin: 2.5rem 0; overflow: hidden; }
         .progress-fill { height: 100%; width: 0%; background: var(--bar-fill); transition: width 1.5s ease; }
         .current-date { margin-top: 3rem; font-size: 0.85rem; color: var(--text-secondary); border-bottom: 1px solid #222; padding-bottom: 1.5rem; margin-bottom: 2rem; }
 
@@ -124,7 +98,8 @@
         textarea {
             flex: 1; background: #111; border: 1px solid #333; border-left: none; border-right: none;
             color: #eee; padding: 20px 30px; resize: none; font-family: inherit; margin-top: 20px; line-height: 1.5;
-            width: calc(100% + 60px); margin-left: -30px; margin-right: -30px; outline: none; cursor: text;
+            width: calc(100% + 60px); margin-left: -30px; margin-right: -30px; outline: none;
+            cursor: text; /* CURSOR FOR TYPING */
         }
         .close-btn { position: absolute; top: 20px; right: 20px; cursor: pointer; color: var(--text-secondary); }
     </style>
@@ -139,14 +114,7 @@
     <div class="main-content" id="main-content">
         <div class="wrapper" id="main-wrapper">
             <h1 class="percentage-display"><span id="percentage">0</span><span>%</span></h1>
-            
-            <!-- Pikachu Mascot Area -->
-            <div class="mascot-container">
-                <img src="mafia-lace-pikachu-run400px.gif" alt="Running Pikachu" class="pikachu" id="pikachu-mascot">
-            </div>
-
             <div class="progress-container"><div class="progress-fill" id="progress-fill"></div></div>
-            
             <div class="current-date" id="full-date">---</div>
             <div id="calendar-root"></div>
         </div>
@@ -200,12 +168,7 @@
             const dateOptions = { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'Australia/Perth' };
             document.getElementById('full-date').innerText = new Intl.DateTimeFormat('en-US', dateOptions).format(new Date());
 
-            // Animate Bar and Pikachu
-            setTimeout(() => { 
-                document.getElementById('progress-fill').style.width = percent + '%';
-                document.getElementById('pikachu-mascot').style.left = percent + '%';
-            }, 300);
-
+            setTimeout(() => { document.getElementById('progress-fill').style.width = percent + '%'; }, 300);
             generateChecklist(year, nowPerth.getMonth(), nowPerth.getDate());
             setupJournalListeners();
             setupInteractions();
