@@ -26,11 +26,11 @@
         body { 
             margin: 0; background-color: var(--bg-color); 
             color: var(--text-primary); font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif; 
-            display: flex; overflow-x: hidden; min-height: 100vh; cursor: default;
+            display: flex; flex-direction: column; overflow-x: hidden; min-height: 100vh; cursor: default;
             user-select: none;
         }
 
-        .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; transition: margin-right 0.4s cubic-bezier(0.16, 1, 0.3, 1); width: 100%; }
+        .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; width: 100%; }
 
         /* Sidebar Styles */
         .stats-panel {
@@ -69,6 +69,7 @@
         .zoom-btn { background: #111; border: 1px solid #333; color: var(--text-secondary); padding: 6px 14px; cursor: pointer; border-radius: 6px; font-size: 0.7rem; text-transform: uppercase; }
         .zoom-btn.active { color: #fff; border-color: #666; background: #222; }
 
+        /* Central Wrapper for Stats & Calendar */
         .wrapper { width: 100%; max-width: 450px; padding: 80px 20px 40px 20px; text-align: center; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1); transform-origin: top center; }
         @media (max-width: 480px) { .wrapper.x2 { transform: scale(1.3); margin-bottom: 30vh; } }
         @media (min-width: 481px) { .wrapper.x2 { transform: scale(2); margin-bottom: 120vh; } }
@@ -82,20 +83,33 @@
         .summary-item { font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 4px; }
         .summary-item span { color: #fff; font-weight: 600; }
 
-        /* HEATMAP STYLES */
-        .heatmap-wrapper { width: 100%; max-width: 700px; margin: 60px auto 40px auto; padding: 20px; border-top: 1px solid #111; }
-        .heatmap-title { font-size: 0.6rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.2em; margin-bottom: 15px; opacity: 0.6; }
-        .heatmap-scroll { width: 100%; overflow-x: auto; padding-bottom: 10px; }
-        .heatmap-grid { display: grid; grid-template-columns: repeat(53, 1fr); grid-template-rows: repeat(7, 1fr); gap: 3px; width: 100%; min-width: 600px; }
+        /* HEATMAP STYLES (Bottom of page, exceeding calendar width) */
+        .heatmap-wrapper { 
+            width: 95%; 
+            max-width: 850px; 
+            margin: 100px auto 50px auto; 
+            padding-top: 30px; 
+            border-top: 1px solid #111; 
+            text-align: center;
+        }
+        .heatmap-title { font-size: 0.6rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.2em; margin-bottom: 20px; opacity: 0.5; }
+        .heatmap-grid { 
+            display: grid; 
+            grid-template-columns: repeat(53, 1fr); 
+            grid-template-rows: repeat(7, 1fr); 
+            gap: 4px; 
+            width: 100%; 
+        }
         .h-dot { aspect-ratio: 1; border-radius: 1px; background: #111; cursor: pointer; transition: background 0.3s; }
-        .h-dot:hover { border: 1px solid #444; }
-        /* Levels */
+        .h-dot:hover { background: #333 !important; }
+        
+        /* Level Colors */
         .l-0 { background: #111; }
         .l-1 { background: rgba(255,255,255,0.15); }
-        .l-2 { background: rgba(255,255,255,0.3); }
-        .l-3 { background: rgba(255,255,255,0.5); }
+        .l-2 { background: rgba(255,255,255,0.35); }
+        .l-3 { background: rgba(255,255,255,0.55); }
         .l-4 { background: rgba(255,255,255,0.8); }
-        .l-5 { background: #fff; box-shadow: 0 0 5px rgba(255,255,255,0.4); }
+        .l-5 { background: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.3); }
 
         .view-controls { display: inline-flex; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 3px; margin-bottom: 28px; }
         .view-btn { background: transparent; border: none; color: var(--text-secondary); padding: 6px 14px; font-size: 0.7rem; border-radius: 6px; cursor: pointer; text-transform: uppercase; }
@@ -148,6 +162,7 @@
 </div>
 
 <div class="main-content">
+    <!-- Centered narrow wrapper -->
     <div class="wrapper" id="main-wrapper">
         <h1 class="percentage-display"><span id="percentage">0</span><span>%</span></h1>
         <div class="progress-container"><div class="progress-fill" id="progress-fill"></div></div>
@@ -167,14 +182,12 @@
         </div>
         
         <div id="calendar-root" class="calendar-container view-current"></div>
+    </div>
 
-        <!-- HEATMAP SECTION -->
-        <div class="heatmap-wrapper">
-            <div class="heatmap-title">Annual Performance Density</div>
-            <div class="heatmap-scroll">
-                <div class="heatmap-grid" id="heatmap-grid"></div>
-            </div>
-        </div>
+    <!-- Wide Heatmap (placed at very bottom of main-content, outside the narrow wrapper) -->
+    <div class="heatmap-wrapper">
+        <div class="heatmap-title">Annual Performance Density</div>
+        <div class="heatmap-grid" id="heatmap-grid"></div>
     </div>
 </div>
 
@@ -255,7 +268,7 @@
         const now = getPerthTime();
         const year = now.getFullYear();
         
-        // Loop through 53 weeks and 7 days
+        // Loop 7 rows (days) and 53 columns (weeks)
         for (let row = 0; row < 7; row++) {
             for (let col = 0; col < 53; col++) {
                 const dayOfYear = (col * 7) + row;
@@ -266,7 +279,8 @@
 
                 const dot = document.createElement('div');
                 const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-                const data = JSON.parse(localStorage.getItem(key));
+                const raw = localStorage.getItem(key);
+                const data = raw ? JSON.parse(raw) : null;
                 
                 let count = 0;
                 if (data && data.habits) {
@@ -274,7 +288,7 @@
                 }
                 
                 dot.className = `h-dot l-${count}`;
-                dot.title = `${months[d.getMonth()]} ${d.getDate()}: ${count} habits`;
+                dot.title = `${months[d.getMonth()]} ${d.getDate()}`;
                 dot.onclick = () => openJournal(key, months[d.getMonth()], d.getDate());
                 grid.appendChild(dot);
             }
