@@ -40,6 +40,7 @@
             min-height: 100vh;
             min-height: 100dvh;
             cursor: default;
+            user-select: none; /* Prevents text selection during double click */
         }
 
         /* Layout */
@@ -71,6 +72,7 @@
             flex-direction: column; 
             z-index: 1000; 
             box-shadow: -15px 0 35px rgba(0,0,0,0.6);
+            user-select: text;
         }
         .journal-panel.open { right: 0; }
 
@@ -118,34 +120,22 @@
         
         .current-date { margin-top: 1.5rem; font-size: 0.8rem; color: var(--text-secondary); border-bottom: 1px solid #1a1a1a; padding-bottom: 1.5rem; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.2em; }
 
-        /* Summary Box Styles */
         .summary-box {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 2rem;
-            padding: 0 10px;
+            display: flex; justify-content: center; flex-wrap: wrap;
+            gap: 12px; margin-bottom: 2rem; padding: 0 10px;
         }
         .summary-item {
-            font-size: 0.65rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            background: rgba(255,255,255,0.03);
-            padding: 4px 8px;
-            border-radius: 4px;
+            font-size: 0.65rem; color: var(--text-secondary);
+            text-transform: uppercase; letter-spacing: 0.1em;
+            background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 4px;
         }
         .summary-item span { color: #fff; font-weight: 600; }
         .summary-item.w-stat { opacity: 0.4; }
 
         .view-controls {
-            display: inline-flex;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-            padding: 3px;
-            margin-bottom: 28px;
+            display: inline-flex; background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px;
+            padding: 3px; margin-bottom: 28px;
         }
         .view-btn {
             background: transparent; border: none; color: var(--text-secondary);
@@ -186,32 +176,24 @@
             pointer-events: none; z-index: 2;
         }
 
-        /* Sidebar content styling */
         .journal-header { font-size: 1.4rem; font-weight: 300; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
         
         .habit-item { 
-            display: flex; align-items: center; 
-            margin-bottom: 18px; font-size: 1rem; 
-            cursor: pointer; color: #ccc; user-select: none;
-            padding: 4px 0; 
+            display: flex; align-items: center; margin-bottom: 18px; 
+            font-size: 1rem; cursor: pointer; color: #ccc; user-select: none; padding: 4px 0; 
         }
         .habit-item input { display: none; }
         
         .custom-checkbox {
-            width: 22px; height: 22px;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            border-radius: 6px; margin-right: 14px;
-            display: inline-block; position: relative;
-            background: rgba(0, 0, 0, 0.3);
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            flex-shrink: 0;
+            width: 22px; height: 22px; border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 6px; margin-right: 14px; display: inline-block; position: relative;
+            background: rgba(0, 0, 0, 0.3); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); flex-shrink: 0;
         }
         
         .habit-item input:checked + .custom-checkbox { background: #ffffff; border-color: #ffffff; }
         .habit-item input:checked + .custom-checkbox::after {
             content: ''; position: absolute; left: 7px; top: 3px;
-            width: 5px; height: 10px; border: solid #000000;
-            border-width: 0 2px 2px 0; transform: rotate(45deg);
+            width: 5px; height: 10px; border: solid #000000; border-width: 0 2px 2px 0; transform: rotate(45deg);
         }
 
         .habit-item.w-action { margin-top: 15px; opacity: 0.15; font-size: 0.8rem; }
@@ -219,39 +201,25 @@
         
         textarea {
             flex: 1; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255,255,255,0.05);
-            border-left: none; border-right: none;
-            color: #eee; padding: 20px 24px; resize: none; font-family: inherit; margin-top: 25px; line-height: 1.6;
-            width: calc(100% + 48px); margin-left: -24px; margin-right: -24px; outline: none;
-            font-size: 16px;
+            border-left: none; border-right: none; color: #eee; padding: 20px 24px; resize: none; 
+            font-family: inherit; margin-top: 25px; line-height: 1.6; width: calc(100% + 48px); 
+            margin-left: -24px; margin-right: -24px; outline: none; font-size: 16px;
         }
 
-        /* Backup Controls */
         .backup-section {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            display: flex;
-            gap: 10px;
+            margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex; gap: 10px;
         }
         .backup-btn {
-            flex: 1;
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.1);
-            color: var(--text-secondary);
-            padding: 8px;
-            font-size: 0.6rem;
-            border-radius: 4px;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            transition: 0.2s;
+            flex: 1; background: transparent; border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-secondary); padding: 8px; font-size: 0.6rem; border-radius: 4px;
+            cursor: pointer; text-transform: uppercase; letter-spacing: 0.1em; transition: 0.2s;
         }
         .backup-btn:hover { background: rgba(255,255,255,0.05); color: #fff; border-color: rgba(255,255,255,0.3); }
         
         .close-btn { 
             position: absolute; top: calc(25px + env(safe-area-inset-top, 0px)); 
-            right: 25px; cursor: pointer; color: var(--text-secondary); 
-            font-size: 1.4rem; z-index: 1010;
+            right: 25px; cursor: pointer; color: var(--text-secondary); font-size: 1.4rem; z-index: 1010;
         }
     </style>
 </head>
@@ -318,7 +286,6 @@
             W
         </label>
 
-        <!-- Save/Load Section -->
         <div class="backup-section">
             <button class="backup-btn" onclick="saveJSON()">Save JSON</button>
             <button class="backup-btn" onclick="document.getElementById('load-input').click()">Load JSON</button>
@@ -329,6 +296,7 @@
 
 <script>
     let currentEditingKey = null;
+    let currentScale = 1;
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
     function getPerthTime() {
@@ -344,6 +312,7 @@
     }
 
     function setZoom(scale) {
+        currentScale = scale;
         const wrapper = document.getElementById('main-wrapper');
         document.getElementById('btn-1x').classList.toggle('active', scale === 1);
         document.getElementById('btn-2x').classList.toggle('active', scale === 2);
@@ -377,7 +346,6 @@
         });
     }
 
-    // --- DATA BACKUP LOGIC ---
     function saveJSON() {
         const data = {};
         for (let i = 0; i < localStorage.length; i++) {
@@ -404,18 +372,13 @@
                 const importedData = JSON.parse(e.target.result);
                 if (confirm("This will overwrite your current data with the backup. Proceed?")) {
                     localStorage.clear();
-                    Object.keys(importedData).forEach(key => {
-                        localStorage.setItem(key, importedData[key]);
-                    });
+                    Object.keys(importedData).forEach(key => localStorage.setItem(key, importedData[key]));
                     location.reload();
                 }
-            } catch (err) {
-                alert("Error parsing the JSON file.");
-            }
+            } catch (err) { alert("Error parsing file."); }
         };
         reader.readAsText(file);
     }
-    // -------------------------
 
     function init() {
         const nowPerth = getPerthTime();
@@ -431,7 +394,6 @@
         document.getElementById('full-date').innerText = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'Australia/Perth' }).format(new Date());
 
         setTimeout(() => { document.getElementById('progress-fill').style.width = percent + '%'; }, 300);
-        
         generateChecklist(year, currentMonth, nowPerth.getDate());
         setupJournalListeners();
         setupInteractions();
@@ -441,7 +403,6 @@
     function generateChecklist(year, currentMonth, currentDate) {
         const root = document.getElementById('calendar-root');
         root.innerHTML = '';
-        
         months.forEach((monthName, monthIdx) => {
             const monthGroup = document.createElement('div');
             monthGroup.className = 'month-group';
@@ -460,19 +421,15 @@
                 const dayBox = document.createElement('div');
                 dayBox.className = 'day-checkbox';
                 dayBox.id = `day-${dateKey}`;
-                
                 for (let i = 0; i < 4; i++) {
                     const q = document.createElement('div');
                     q.className = `q q-${i}`;
                     dayBox.appendChild(q);
                 }
-
                 const num = document.createElement('div');
                 num.className = 'day-number'; num.innerText = d;
                 dayBox.appendChild(num);
-                
                 if (monthIdx === currentMonth && d === currentDate) dayBox.classList.add('is-today');
-
                 updateBoxVisuals(dayBox, dateKey);
                 dayBox.onclick = (e) => { e.stopPropagation(); openJournal(dateKey, monthName, d); };
                 daysGrid.appendChild(dayBox);
@@ -499,6 +456,13 @@
     }
 
     function setupInteractions() {
+        // Toggle Zoom on Double Click
+        document.addEventListener('dblclick', (e) => {
+            if (e.target.closest('.zoom-controls') || e.target.closest('.view-controls') || e.target.closest('.day-checkbox') || e.target.closest('.journal-panel')) return;
+            setZoom(currentScale === 1 ? 2 : 1);
+        });
+
+        // Toggle Journal on Single Click
         document.getElementById('body-root').onclick = (e) => {
             const panel = document.getElementById('journal-panel');
             if (e.target.closest('.journal-panel') || e.target.closest('.day-checkbox') || e.target.closest('.zoom-controls') || e.target.closest('.view-controls')) return;
