@@ -54,7 +54,6 @@
         }
         .journal-panel.open { right: 0; }
 
-        /* Sidebar Navigation Header */
         .journal-header-container { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
         .journal-header { font-size: 1.2rem; font-weight: 300; }
         .nav-btns { display: flex; gap: 5px; }
@@ -66,7 +65,6 @@
         .day-checkbox.is-today { border-color: var(--today-border); border-width: 1.5px; }
         .day-checkbox.is-editing { border-color: var(--editing-border) !important; border-width: 2px !important; box-shadow: 0 0 12px rgba(255, 75, 43, 0.3); z-index: 5; }
 
-        /* Main UI */
         .zoom-controls { position: fixed; top: 20px; left: 20px; z-index: 1100; display: flex; gap: 10px; }
         .zoom-btn { background: #111; border: 1px solid #333; color: var(--text-secondary); padding: 6px 14px; cursor: pointer; border-radius: 6px; font-size: 0.7rem; text-transform: uppercase; }
         .zoom-btn.active { color: #fff; border-color: #666; background: #222; }
@@ -83,6 +81,21 @@
         .summary-box { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-bottom: 2rem; padding: 0 10px; }
         .summary-item { font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 4px; }
         .summary-item span { color: #fff; font-weight: 600; }
+
+        /* HEATMAP STYLES */
+        .heatmap-wrapper { width: 100%; max-width: 700px; margin: 60px auto 40px auto; padding: 20px; border-top: 1px solid #111; }
+        .heatmap-title { font-size: 0.6rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.2em; margin-bottom: 15px; opacity: 0.6; }
+        .heatmap-scroll { width: 100%; overflow-x: auto; padding-bottom: 10px; }
+        .heatmap-grid { display: grid; grid-template-columns: repeat(53, 1fr); grid-template-rows: repeat(7, 1fr); gap: 3px; width: 100%; min-width: 600px; }
+        .h-dot { aspect-ratio: 1; border-radius: 1px; background: #111; cursor: pointer; transition: background 0.3s; }
+        .h-dot:hover { border: 1px solid #444; }
+        /* Levels */
+        .l-0 { background: #111; }
+        .l-1 { background: rgba(255,255,255,0.15); }
+        .l-2 { background: rgba(255,255,255,0.3); }
+        .l-3 { background: rgba(255,255,255,0.5); }
+        .l-4 { background: rgba(255,255,255,0.8); }
+        .l-5 { background: #fff; box-shadow: 0 0 5px rgba(255,255,255,0.4); }
 
         .view-controls { display: inline-flex; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 3px; margin-bottom: 28px; }
         .view-btn { background: transparent; border: none; color: var(--text-secondary); padding: 6px 14px; font-size: 0.7rem; border-radius: 6px; cursor: pointer; text-transform: uppercase; }
@@ -154,6 +167,14 @@
         </div>
         
         <div id="calendar-root" class="calendar-container view-current"></div>
+
+        <!-- HEATMAP SECTION -->
+        <div class="heatmap-wrapper">
+            <div class="heatmap-title">Annual Performance Density</div>
+            <div class="heatmap-scroll">
+                <div class="heatmap-grid" id="heatmap-grid"></div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -226,6 +247,38 @@
         date.setDate(date.getDate() + offset);
         const newKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
         openJournal(newKey, months[date.getMonth()], date.getDate());
+    }
+
+    function renderHeatmap() {
+        const grid = document.getElementById('heatmap-grid');
+        grid.innerHTML = '';
+        const now = getPerthTime();
+        const year = now.getFullYear();
+        
+        // Loop through 53 weeks and 7 days
+        for (let row = 0; row < 7; row++) {
+            for (let col = 0; col < 53; col++) {
+                const dayOfYear = (col * 7) + row;
+                const d = new Date(year, 0, 1);
+                d.setDate(d.getDate() + dayOfYear);
+                
+                if (d.getFullYear() > year) break;
+
+                const dot = document.createElement('div');
+                const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+                const data = JSON.parse(localStorage.getItem(key));
+                
+                let count = 0;
+                if (data && data.habits) {
+                    count = data.habits.filter(h => h === true).length;
+                }
+                
+                dot.className = `h-dot l-${count}`;
+                dot.title = `${months[d.getMonth()]} ${d.getDate()}: ${count} habits`;
+                dot.onclick = () => openJournal(key, months[d.getMonth()], d.getDate());
+                grid.appendChild(dot);
+            }
+        }
     }
 
     function openJournal(key, month, day) {
@@ -312,6 +365,7 @@
             if (el) el.innerText = `${c}/${d}`;
         });
         calculateWakeStats();
+        renderHeatmap();
     }
 
     function saveJSON() {
