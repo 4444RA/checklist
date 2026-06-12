@@ -21,7 +21,7 @@
             --color-yoga: #a370f7;
             --color-workout: #ff4b2b;
             --color-walk: #2ecc71;
-            --color-w: #555; /* Subtle color for W */
+            --color-w: #555;
         }
 
         * { 
@@ -49,7 +49,6 @@
             flex-direction: column; 
             align-items: center; 
             transition: margin-right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            cursor: default;
             width: 100%;
         }
 
@@ -137,13 +136,8 @@
             padding: 4px 8px;
             border-radius: 4px;
         }
-        .summary-item span {
-            color: #fff;
-            font-weight: 600;
-        }
-        .summary-item.w-stat {
-            opacity: 0.4; /* Slightly hidden as requested */
-        }
+        .summary-item span { color: #fff; font-weight: 600; }
+        .summary-item.w-stat { opacity: 0.4; }
 
         .view-controls {
             display: inline-flex;
@@ -154,28 +148,17 @@
             margin-bottom: 28px;
         }
         .view-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            padding: 6px 14px;
-            font-size: 0.7rem;
-            border-radius: 6px;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            background: transparent; border: none; color: var(--text-secondary);
+            padding: 6px 14px; font-size: 0.7rem; border-radius: 6px;
+            cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em;
             transition: all 0.2s ease;
         }
-        .view-btn.active {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-        }
+        .view-btn.active { background: rgba(255, 255, 255, 0.1); color: #fff; }
 
         .month-group { text-align: left; margin-bottom: 32px; }
         .calendar-container.view-current .month-group.past,
         .calendar-container.view-current .month-group.future { display: none; }
-        .calendar-container.view-year .month-group.past,
-        .calendar-container.view-year .month-group.future { display: block; }
-
+        
         .month-title { font-size: 0.7rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 12px; letter-spacing: 0.2em; font-weight: 600; opacity: 0.5; }
         .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
 
@@ -187,7 +170,6 @@
             overflow: hidden; background: #111; transition: transform 0.2s, border-color 0.2s;
             margin: 0 auto;
         }
-        .day-checkbox:active { border-color: #555; transform: scale(0.95); }
         .day-checkbox.is-today { border-color: var(--today-border); border-width: 1.5px; box-shadow: 0 0 10px rgba(255,255,255,0.15); }
         
         .q { width: 100%; height: 100%; opacity: 0; transition: opacity 0.3s ease; }
@@ -204,7 +186,8 @@
             pointer-events: none; z-index: 2;
         }
 
-        .journal-header { font-size: 1.4rem; font-weight: 300; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; padding-right: 30px; }
+        /* Sidebar content styling */
+        .journal-header { font-size: 1.4rem; font-weight: 300; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
         
         .habit-item { 
             display: flex; align-items: center; 
@@ -231,31 +214,45 @@
             border-width: 0 2px 2px 0; transform: rotate(45deg);
         }
 
-        /* Hidden W Action Styling */
-        .habit-item.w-action {
-            margin-top: auto;
-            opacity: 0.15;
-            transition: opacity 0.3s;
-            font-size: 0.8rem;
-        }
+        .habit-item.w-action { margin-top: 15px; opacity: 0.15; font-size: 0.8rem; }
         .habit-item.w-action:hover { opacity: 1; }
-        .habit-item.w-action .custom-checkbox { width: 16px; height: 16px; }
-        .habit-item.w-action input:checked + .custom-checkbox::after { left: 5px; top: 2px; width: 3px; height: 7px; }
         
         textarea {
             flex: 1; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255,255,255,0.05);
             border-left: none; border-right: none;
             color: #eee; padding: 20px 24px; resize: none; font-family: inherit; margin-top: 25px; line-height: 1.6;
             width: calc(100% + 48px); margin-left: -24px; margin-right: -24px; outline: none;
-            cursor: text; font-size: 16px;
+            font-size: 16px;
         }
+
+        /* Backup Controls */
+        .backup-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            gap: 10px;
+        }
+        .backup-btn {
+            flex: 1;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-secondary);
+            padding: 8px;
+            font-size: 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: 0.2s;
+        }
+        .backup-btn:hover { background: rgba(255,255,255,0.05); color: #fff; border-color: rgba(255,255,255,0.3); }
         
         .close-btn { 
             position: absolute; top: calc(25px + env(safe-area-inset-top, 0px)); 
             right: 25px; cursor: pointer; color: var(--text-secondary); 
-            font-size: 1.4rem; transition: 0.2s; padding: 5px; z-index: 1010;
+            font-size: 1.4rem; z-index: 1010;
         }
-        .close-btn:hover { color: #fff; }
     </style>
 </head>
 <body id="body-root">
@@ -271,7 +268,6 @@
         <div class="progress-container"><div class="progress-fill" id="progress-fill"></div></div>
         <div class="current-date" id="full-date">---</div>
         
-        <!-- Summary Box -->
         <div class="summary-box" id="summary-box">
             <div class="summary-item">Meditate <span id="stat-0">0/0</span></div>
             <div class="summary-item">Yoga <span id="stat-1">0/0</span></div>
@@ -316,12 +312,18 @@
         
         <textarea id="journal-text" placeholder="What happened today?"></textarea>
 
-        <!-- Hidden W Action -->
         <label class="habit-item w-action">
             <input type="checkbox" data-habit="4">
             <span class="custom-checkbox"></span>
             W
         </label>
+
+        <!-- Save/Load Section -->
+        <div class="backup-section">
+            <button class="backup-btn" onclick="saveJSON()">Save JSON</button>
+            <button class="backup-btn" onclick="document.getElementById('load-input').click()">Load JSON</button>
+            <input type="file" id="load-input" style="display:none" accept=".json" onchange="loadJSON(event)">
+        </div>
     </div>
 </div>
 
@@ -350,11 +352,9 @@
 
     function setViewMode(mode) {
         const container = document.getElementById('calendar-root');
-        const currentBtn = document.getElementById('view-current-btn');
-        const yearBtn = document.getElementById('view-year-btn');
         container.className = mode === 'current' ? "calendar-container view-current" : "calendar-container view-year";
-        currentBtn.classList.toggle('active', mode === 'current');
-        yearBtn.classList.toggle('active', mode === 'year');
+        document.getElementById('view-current-btn').classList.toggle('active', mode === 'current');
+        document.getElementById('view-year-btn').classList.toggle('active', mode === 'year');
     }
 
     function updateSummary() {
@@ -362,25 +362,60 @@
         const year = now.getFullYear();
         const month = now.getMonth();
         const today = now.getDate();
-        
         let tallies = [0, 0, 0, 0, 0];
 
-        // Loop through current month up to today
         for (let d = 1; d <= today; d++) {
             const key = `${year}-${month}-${d}`;
             const data = JSON.parse(localStorage.getItem(key));
             if (data && data.habits) {
-                data.habits.forEach((checked, i) => {
-                    if (checked) tallies[i]++;
-                });
+                data.habits.forEach((checked, i) => { if (checked) tallies[i]++; });
             }
         }
-
         tallies.forEach((count, i) => {
             const el = document.getElementById(`stat-${i}`);
             if (el) el.innerText = `${count}/${today}`;
         });
     }
+
+    // --- DATA BACKUP LOGIC ---
+    function saveJSON() {
+        const data = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            data[key] = localStorage.getItem(key);
+        }
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `habit-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function loadJSON(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                if (confirm("This will overwrite your current data with the backup. Proceed?")) {
+                    localStorage.clear();
+                    Object.keys(importedData).forEach(key => {
+                        localStorage.setItem(key, importedData[key]);
+                    });
+                    location.reload();
+                }
+            } catch (err) {
+                alert("Error parsing the JSON file.");
+            }
+        };
+        reader.readAsText(file);
+    }
+    // -------------------------
 
     function init() {
         const nowPerth = getPerthTime();
@@ -393,8 +428,7 @@
         const percent = ((daysPassed / totalDays) * 100).toFixed(1);
 
         document.getElementById('percentage').innerText = percent;
-        const dateOptions = { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'Australia/Perth' };
-        document.getElementById('full-date').innerText = new Intl.DateTimeFormat('en-US', dateOptions).format(new Date());
+        document.getElementById('full-date').innerText = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'Australia/Perth' }).format(new Date());
 
         setTimeout(() => { document.getElementById('progress-fill').style.width = percent + '%'; }, 300);
         
@@ -427,7 +461,6 @@
                 dayBox.className = 'day-checkbox';
                 dayBox.id = `day-${dateKey}`;
                 
-                // Only 4 quadrants for the visual grid
                 for (let i = 0; i < 4; i++) {
                     const q = document.createElement('div');
                     q.className = `q q-${i}`;
@@ -441,10 +474,7 @@
                 if (monthIdx === currentMonth && d === currentDate) dayBox.classList.add('is-today');
 
                 updateBoxVisuals(dayBox, dateKey);
-                dayBox.addEventListener('click', (e) => {
-                    e.stopPropagation(); 
-                    openJournal(dateKey, monthName, d);
-                });
+                dayBox.onclick = (e) => { e.stopPropagation(); openJournal(dateKey, monthName, d); };
                 daysGrid.appendChild(dayBox);
             }
             monthGroup.appendChild(title);
@@ -458,7 +488,7 @@
         const data = JSON.parse(localStorage.getItem(key)) || { text: "", habits: [false, false, false, false, false] };
         document.getElementById('journal-date-title').innerText = `${month} ${day}`;
         document.getElementById('journal-text').value = data.text || "";
-        const checkboxes = document.querySelectorAll('#habit-checklist input');
+        const checkboxes = document.querySelectorAll('#habit-checklist input[type="checkbox"]');
         checkboxes.forEach((cb, i) => cb.checked = data.habits ? !!data.habits[i] : false);
         document.getElementById('journal-panel').classList.add('open');
     }
@@ -469,23 +499,20 @@
     }
 
     function setupInteractions() {
-        document.getElementById('body-root').addEventListener('click', (e) => {
+        document.getElementById('body-root').onclick = (e) => {
             const panel = document.getElementById('journal-panel');
             if (e.target.closest('.journal-panel') || e.target.closest('.day-checkbox') || e.target.closest('.zoom-controls') || e.target.closest('.view-controls')) return;
-
-            if (panel.classList.contains('open')) {
-                closeJournal();
-            } else {
+            if (panel.classList.contains('open')) closeJournal();
+            else {
                 const now = getPerthTime();
-                const todayKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
-                openJournal(todayKey, months[now.getMonth()], now.getDate());
+                openJournal(`${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`, months[now.getMonth()], now.getDate());
             }
-        });
+        };
     }
 
     function setupJournalListeners() {
         const text = document.getElementById('journal-text');
-        const habits = document.querySelectorAll('#habit-checklist input');
+        const habits = document.querySelectorAll('#habit-checklist input[type="checkbox"]');
         const saveData = () => {
             if (!currentEditingKey) return;
             const habitValues = Array.from(habits).map(cb => cb.checked);
