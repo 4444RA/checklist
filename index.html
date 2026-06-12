@@ -66,7 +66,7 @@
         .day-checkbox.is-today { border-color: var(--today-border); border-width: 1.5px; }
         .day-checkbox.is-editing { border-color: var(--editing-border) !important; border-width: 2px !important; box-shadow: 0 0 12px rgba(255, 75, 43, 0.3); z-index: 5; }
 
-        /* Rest of UI */
+        /* Main UI */
         .zoom-controls { position: fixed; top: 20px; left: 20px; z-index: 1100; display: flex; gap: 10px; }
         .zoom-btn { background: #111; border: 1px solid #333; color: var(--text-secondary); padding: 6px 14px; cursor: pointer; border-radius: 6px; font-size: 0.7rem; text-transform: uppercase; }
         .zoom-btn.active { color: #fff; border-color: #666; background: #222; }
@@ -117,7 +117,6 @@
 
         textarea { flex: 1; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255,255,255,0.05); border-left: none; border-right: none; color: #eee; padding: 20px 24px; resize: none; font-family: inherit; margin-top: 25px; line-height: 1.6; width: calc(100% + 48px); margin-left: -24px; outline: none; font-size: 16px; }
         .backup-btn { flex: 1; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--text-secondary); padding: 8px; font-size: 0.6rem; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
-        .close-btn { position: absolute; top: 25px; right: 25px; cursor: pointer; color: var(--text-secondary); font-size: 1.4rem; z-index: 1010; }
     </style>
 </head>
 <body id="body-root">
@@ -159,7 +158,6 @@
 </div>
 
 <div class="journal-panel" id="journal-panel">
-    <div class="close-btn" onclick="closeJournal()">✕</div>
     <div class="journal-header-container">
         <div class="journal-header" id="journal-date-title">Date</div>
         <div class="nav-btns">
@@ -226,21 +224,16 @@
         const parts = currentEditingKey.split('-');
         const date = new Date(parts[0], parts[1], parts[2]);
         date.setDate(date.getDate() + offset);
-        
         const newKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
         openJournal(newKey, months[date.getMonth()], date.getDate());
     }
 
     function openJournal(key, month, day) {
-        // Remove highlighting from previous editing box
         if (currentEditingKey) {
             const prevBox = document.getElementById(`day-${currentEditingKey}`);
             if (prevBox) prevBox.classList.remove('is-editing');
         }
-
         currentEditingKey = key;
-        
-        // Add highlighting to new editing box
         const currentBox = document.getElementById(`day-${key}`);
         if (currentBox) currentBox.classList.add('is-editing');
 
@@ -314,7 +307,10 @@
             const data = JSON.parse(localStorage.getItem(`${y}-${m}-${i}`));
             if (data && data.habits) data.habits.forEach((c, idx) => { if (c) tallies[idx]++; });
         }
-        tallies.forEach((c, i) => document.getElementById(`summ-${i}`).innerText = `${c}/${d}`);
+        tallies.forEach((c, i) => {
+            const el = document.getElementById(`summ-${i}`);
+            if (el) el.innerText = `${c}/${d}`;
+        });
         calculateWakeStats();
     }
 
