@@ -18,7 +18,7 @@
             --bar-fill: #ffffff;
             --color-meditate: #4a90e2;
             --color-yoga: #a370f7;
-            --color-workout: #f1c40f;
+            --color-workout: #f1c40f; /* CHANGED TO YELLOW */
             --color-walk: #2ecc71;
             --color-fail: #610000;
         }
@@ -33,7 +33,6 @@
 
         .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; width: 100%; }
 
-        /* Sidebar Styles */
         .stats-panel {
             width: 260px; height: 100dvh; background: var(--panel-bg); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
             border-right: 1px solid rgba(255, 255, 255, 0.08); position: fixed; left: -260px; top: 0; z-index: 1001;
@@ -62,6 +61,10 @@
         .day-checkbox { aspect-ratio: 1; width: 100%; max-width: 40px; border: 1px solid var(--box-border); border-radius: 4px; cursor: pointer; position: relative; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; overflow: hidden; background: #111; margin: 0 auto; transition: border-color 0.3s; }
         .day-checkbox.is-today { border-color: var(--today-border); border-width: 1.5px; }
         .day-checkbox.is-editing { border-color: var(--editing-border) !important; border-width: 2px !important; box-shadow: 0 0 12px rgba(255, 75, 43, 0.3); z-index: 5; }
+        
+        /* Spacer for empty days to align calendar */
+        .day-spacer { aspect-ratio: 1; width: 100%; max-width: 40px; }
+        .day-header { font-size: 0.55rem; color: var(--text-secondary); text-align: center; padding-bottom: 4px; opacity: 0.5; font-weight: 700; }
 
         .zoom-controls { position: fixed; top: 20px; left: 20px; z-index: 1100; display: flex; gap: 10px; }
         .zoom-btn { background: #111; border: 1px solid #333; color: var(--text-secondary); padding: 6px 14px; cursor: pointer; border-radius: 6px; font-size: 0.7rem; text-transform: uppercase; }
@@ -96,7 +99,6 @@
         .view-btn { background: transparent; border: none; color: var(--text-secondary); padding: 6px 14px; font-size: 0.65rem; border-radius: 6px; cursor: pointer; text-transform: uppercase; }
         .view-btn.active { background: rgba(255, 255, 255, 0.1); color: #fff; }
 
-        /* HEATMAP STYLES */
         .heatmap-wrapper { width: 95%; max-width: 850px; margin: 100px auto 50px auto; padding-top: 30px; border-top: 1px solid #111; text-align: center; }
         .heatmap-title { font-size: 0.6rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.2em; margin-bottom: 20px; opacity: 0.5; }
         .heatmap-grid { display: grid; grid-template-columns: repeat(53, 1fr); grid-template-rows: repeat(7, 1fr); gap: 4px; width: 100%; }
@@ -184,14 +186,13 @@
     </div>
 
     <div class="heatmap-wrapper">
-
         <div class="heatmap-grid" id="heatmap-grid"></div>
     </div>
 </div>
 
 <div class="journal-panel" id="journal-panel">
     <div class="journal-header-container">
-        <div id="journal-date-title" style="font-size:1.2rem; font-weight:300;">Date</div>
+        <div id="journal-date-title" style="font-size:1.1rem; font-weight:300;">Date</div>
         <div class="nav-btns"><button class="nav-btn" onclick="changeDay(-1)">←</button><button class="nav-btn" onclick="changeDay(1)">→</button></div>
     </div>
     <div class="wake-section"><span style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-secondary);">Wake Up</span><input type="text" id="wake-time" class="wake-input" placeholder="--:-- AM"></div>
@@ -218,6 +219,7 @@
 <script>
     let currentEditingKey = null, currentScale = 1;
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
     function getPerthTime() {
         const now = new Date();
@@ -271,8 +273,8 @@
                 let isFail = false;
                 if (data && data.habits) {
                     count = data.habits.slice(0, 4).filter(h => h === true).length;
-                    if (data.habits[4]) count++; // NW adds to glow
-                    if (data.habits[5]) isFail = true; // W turns it red
+                    if (data.habits[4]) count++; 
+                    if (data.habits[5]) isFail = true; 
                 }
                 
                 dot.className = `h-dot ${isFail ? 'l-fail' : 'l-' + count}`;
@@ -287,7 +289,13 @@
         currentEditingKey = key;
         const c = document.getElementById(`day-${key}`); if (c) c.classList.add('is-editing');
         const data = JSON.parse(localStorage.getItem(key)) || { text: "", habits: [0,0,0,0,0,0], wake: "" };
-        document.getElementById('journal-date-title').innerText = `${month} ${day}`;
+        
+        // Get day of the week for the title
+        const parts = key.split('-');
+        const dObj = new Date(parts[0], parts[1], parts[2]);
+        const dayName = dayNames[dObj.getDay()];
+        
+        document.getElementById('journal-date-title').innerText = `${dayName}, ${month} ${day}`;
         document.getElementById('journal-text').value = data.text || "";
         document.getElementById('wake-time').value = data.wake || "";
         document.querySelectorAll('#habit-checklist input').forEach((cb, i) => cb.checked = data.habits ? !!data.habits[i] : false);
@@ -360,9 +368,27 @@
 
     function generateCalendar(year, currentMonth, currentDate) {
         const root = document.getElementById('calendar-root');
+        const dayHeaders = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
         months.forEach((name, mIdx) => {
             const group = document.createElement('div'); group.className = `month-group ${mIdx < currentMonth ? 'past' : mIdx > currentMonth ? 'future' : 'current'}`;
             const grid = document.createElement('div'); grid.className = 'days-grid';
+            
+            // Add M T W T F S S headers
+            dayHeaders.forEach(day => {
+                const h = document.createElement('div'); h.className = 'day-header'; h.innerText = day; grid.appendChild(h);
+            });
+
+            // Calculate first day of month (0=Sun, 1=Mon...6=Sat)
+            let firstDay = new Date(year, mIdx, 1).getDay();
+            // Adjust so Monday is first (Monday=0, Sunday=6)
+            let offset = firstDay === 0 ? 6 : firstDay - 1;
+            
+            // Add spacers for alignment
+            for (let i = 0; i < offset; i++) {
+                const spacer = document.createElement('div'); spacer.className = 'day-spacer'; grid.appendChild(spacer);
+            }
+
             const daysInMonth = new Date(year, mIdx + 1, 0).getDate();
             for (let d = 1; d <= daysInMonth; d++) {
                 const key = `${year}-${mIdx}-${d}`;
@@ -392,7 +418,6 @@
         const wake = document.getElementById('wake-time'), text = document.getElementById('journal-text'), habits = document.querySelectorAll('#habit-checklist input');
         const save = () => { if (!currentEditingKey) return; localStorage.setItem(currentEditingKey, JSON.stringify({ text: text.value, habits: Array.from(habits).map(c => c.checked), wake: wake.value })); updateBoxVisuals(document.getElementById(`day-${currentEditingKey}`), currentEditingKey); updateSummary(); };
         
-        // Handle NW/W Choice exclusivity
         const nw = document.getElementById('cb-nw'), w = document.getElementById('cb-w');
         nw.onchange = () => { if (nw.checked) w.checked = false; save(); };
         w.onchange = () => { if (w.checked) nw.checked = false; save(); };
