@@ -18,7 +18,7 @@
             --bar-fill: #ffffff;
             --color-meditate: #4a90e2;
             --color-yoga: #a370f7;
-            --color-workout: #f1c40f; /* CHANGED TO YELLOW */
+            --color-workout: #f1c40f; /* YELLOW */
             --color-walk: #2ecc71;
             --color-fail: #610000;
         }
@@ -33,17 +33,19 @@
 
         .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; width: 100%; }
 
+        /* Sidebar Styles */
         .stats-panel {
             width: 260px; height: 100dvh; background: var(--panel-bg); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
             border-right: 1px solid rgba(255, 255, 255, 0.08); position: fixed; left: -260px; top: 0; z-index: 1001;
             transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1); padding: 60px 24px; display: flex; flex-direction: column; gap: 30px;
+            cursor: pointer; /* Indicates it can be clicked to close */
         }
         .stats-panel.open { left: 0; }
         .stats-toggle {
             position: absolute; right: -40px; top: 50%; transform: translateY(-50%);
             width: 40px; height: 60px; background: var(--panel-bg); backdrop-filter: blur(25px); 
             border: 1px solid rgba(255, 255, 255, 0.08); border-left: none; border-radius: 0 8px 8px 0;
-            display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary);
+            display: flex; align-items: center; justify-content: center; color: var(--text-secondary);
         }
 
         .journal-panel {
@@ -61,8 +63,7 @@
         .day-checkbox { aspect-ratio: 1; width: 100%; max-width: 40px; border: 1px solid var(--box-border); border-radius: 4px; cursor: pointer; position: relative; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; overflow: hidden; background: #111; margin: 0 auto; transition: border-color 0.3s; }
         .day-checkbox.is-today { border-color: var(--today-border); border-width: 1.5px; }
         .day-checkbox.is-editing { border-color: var(--editing-border) !important; border-width: 2px !important; box-shadow: 0 0 12px rgba(255, 75, 43, 0.3); z-index: 5; }
-        
-        /* Spacer for empty days to align calendar */
+
         .day-spacer { aspect-ratio: 1; width: 100%; max-width: 40px; }
         .day-header { font-size: 0.55rem; color: var(--text-secondary); text-align: center; padding-bottom: 4px; opacity: 0.5; font-weight: 700; }
 
@@ -100,7 +101,6 @@
         .view-btn.active { background: rgba(255, 255, 255, 0.1); color: #fff; }
 
         .heatmap-wrapper { width: 95%; max-width: 850px; margin: 100px auto 50px auto; padding-top: 30px; border-top: 1px solid #111; text-align: center; }
-        .heatmap-title { font-size: 0.6rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.2em; margin-bottom: 20px; opacity: 0.5; }
         .heatmap-grid { display: grid; grid-template-columns: repeat(53, 1fr); grid-template-rows: repeat(7, 1fr); gap: 4px; width: 100%; }
         .h-dot { aspect-ratio: 1; border-radius: 1px; background: #111; cursor: pointer; transition: background 0.3s; }
         .l-0 { background: #111; }
@@ -145,8 +145,8 @@
 </head>
 <body id="body-root">
 
-<div class="stats-panel" id="stats-panel">
-    <div class="stats-toggle" onclick="toggleStats()"><span id="stats-arrow">→</span></div>
+<div class="stats-panel" id="stats-panel" onclick="toggleStats()">
+    <div class="stats-toggle"><span id="stats-arrow">→</span></div>
     <div style="display:flex; flex-direction:column; gap:30px;">
         <div class="stat-card"><span style="font-size:0.6rem; text-transform:uppercase; color:var(--text-secondary); letter-spacing:0.1em;">Avg Wake Up</span><span id="stat-avg" style="font-size:1.4rem; font-weight:200;">--:--</span></div>
         <div class="stat-card"><span style="font-size:0.6rem; text-transform:uppercase; color:var(--text-secondary); letter-spacing:0.1em;">Last 7 Days</span><span id="stat-7day" style="font-size:1.4rem; font-weight:200;">--:--</span></div>
@@ -156,8 +156,8 @@
 </div>
 
 <div class="zoom-controls">
-    <button class="zoom-btn active" id="btn-1x" onclick="setZoom(1)">1x</button>
-    <button class="zoom-btn" id="btn-2x" onclick="setZoom(2)">2x</button>
+    <button class="zoom-btn" id="btn-1x" onclick="setZoom(1)">1x</button>
+    <button class="zoom-btn active" id="btn-2x" onclick="setZoom(2)">2x</button>
 </div>
 
 <div class="main-content">
@@ -217,7 +217,7 @@
 </div>
 
 <script>
-    let currentEditingKey = null, currentScale = 2;
+    let currentEditingKey = null, currentScale = 2; // LOAD AT 2x
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -230,6 +230,7 @@
     }
 
     function toggleMeta() { document.getElementById('meta-content').classList.toggle('visible'); }
+    
     function toggleStats() {
         const panel = document.getElementById('stats-panel');
         panel.classList.toggle('open');
@@ -268,7 +269,6 @@
                 const dot = document.createElement('div');
                 const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
                 const data = JSON.parse(localStorage.getItem(key));
-                
                 let count = 0;
                 let isFail = false;
                 if (data && data.habits) {
@@ -276,7 +276,6 @@
                     if (data.habits[4]) count++; 
                     if (data.habits[5]) isFail = true; 
                 }
-                
                 dot.className = `h-dot ${isFail ? 'l-fail' : 'l-' + count}`;
                 dot.onclick = () => openJournal(key, months[d.getMonth()], d.getDate());
                 grid.appendChild(dot);
@@ -289,12 +288,9 @@
         currentEditingKey = key;
         const c = document.getElementById(`day-${key}`); if (c) c.classList.add('is-editing');
         const data = JSON.parse(localStorage.getItem(key)) || { text: "", habits: [0,0,0,0,0,0], wake: "" };
-        
-        // Get day of the week for the title
         const parts = key.split('-');
         const dObj = new Date(parts[0], parts[1], parts[2]);
         const dayName = dayNames[dObj.getDay()];
-        
         document.getElementById('journal-date-title').innerText = `${dayName}, ${month} ${day}`;
         document.getElementById('journal-text').value = data.text || "";
         document.getElementById('wake-time').value = data.wake || "";
@@ -355,44 +351,34 @@
         const reader = new FileReader(); reader.onload = (ev) => { const d = JSON.parse(ev.target.result); localStorage.clear(); Object.keys(d).forEach(k => localStorage.setItem(k, d[k])); location.reload(); }; reader.readAsText(e.target.files[0]);
     }
 
- 
-function init() {
-    const now = getPerthTime();
-    const start = new Date(now.getFullYear(), 0, 1), end = new Date(now.getFullYear() + 1, 0, 1);
-    const percent = (((now - start) / (end - start)) * 100).toFixed(1);
-    
-    setZoom(2); // ADD THIS LINE HERE
+    function init() {
+        const now = getPerthTime();
+        const start = new Date(now.getFullYear(), 0, 1), end = new Date(now.getFullYear() + 1, 0, 1);
+        const percent = (((now - start) / (end - start)) * 100).toFixed(1);
+        
+        setZoom(2); // START AT 2x
 
-    document.getElementById('percentage').innerText = percent;
-    document.getElementById('full-date').innerText = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'Australia/Perth' }).format(new Date());
-    setTimeout(() => { document.getElementById('progress-fill').style.width = percent + '%'; }, 300);
-    generateCalendar(now.getFullYear(), now.getMonth(), now.getDate());
-    setupListeners(); updateSummary();
-}
+        document.getElementById('percentage').innerText = percent;
+        document.getElementById('full-date').innerText = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'Australia/Perth' }).format(new Date());
+        setTimeout(() => { document.getElementById('progress-fill').style.width = percent + '%'; }, 300);
+        generateCalendar(now.getFullYear(), now.getMonth(), now.getDate());
+        setupListeners(); updateSummary();
+    }
 
     function generateCalendar(year, currentMonth, currentDate) {
         const root = document.getElementById('calendar-root');
         const dayHeaders = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-
         months.forEach((name, mIdx) => {
             const group = document.createElement('div'); group.className = `month-group ${mIdx < currentMonth ? 'past' : mIdx > currentMonth ? 'future' : 'current'}`;
             const grid = document.createElement('div'); grid.className = 'days-grid';
-            
-            // Add M T W T F S S headers
             dayHeaders.forEach(day => {
                 const h = document.createElement('div'); h.className = 'day-header'; h.innerText = day; grid.appendChild(h);
             });
-
-            // Calculate first day of month (0=Sun, 1=Mon...6=Sat)
             let firstDay = new Date(year, mIdx, 1).getDay();
-            // Adjust so Monday is first (Monday=0, Sunday=6)
             let offset = firstDay === 0 ? 6 : firstDay - 1;
-            
-            // Add spacers for alignment
             for (let i = 0; i < offset; i++) {
                 const spacer = document.createElement('div'); spacer.className = 'day-spacer'; grid.appendChild(spacer);
             }
-
             const daysInMonth = new Date(year, mIdx + 1, 0).getDate();
             for (let d = 1; d <= daysInMonth; d++) {
                 const key = `${year}-${mIdx}-${d}`;
@@ -414,18 +400,23 @@ function init() {
             if (e.target.closest('.zoom-controls') || e.target.closest('.view-controls') || e.target.closest('.day-checkbox') || e.target.closest('.journal-panel') || e.target.closest('.stats-panel')) return;
             setZoom(currentScale === 1 ? 2 : 1);
         });
+
         document.getElementById('body-root').onclick = (e) => {
-            if (e.target.closest('.journal-panel') || e.target.closest('.day-checkbox') || e.target.closest('.zoom-controls') || e.target.closest('.view-controls') || e.target.closest('.stats-panel') || e.target.closest('.meta-toggle')) return;
+            // If background click, close EVERYTHING
+            if (e.target.closest('.journal-panel') || e.target.closest('.stats-panel') || e.target.closest('.day-checkbox') || e.target.closest('.zoom-controls') || e.target.closest('.view-controls') || e.target.closest('.meta-toggle')) return;
+            
+            // Close stats if open
+            if (document.getElementById('stats-panel').classList.contains('open')) toggleStats();
+            
             if (document.getElementById('journal-panel').classList.contains('open')) closeJournal();
             else { const n = getPerthTime(); openJournal(`${n.getFullYear()}-${n.getMonth()}-${n.getDate()}`, months[n.getMonth()], n.getDate()); }
         };
+
         const wake = document.getElementById('wake-time'), text = document.getElementById('journal-text'), habits = document.querySelectorAll('#habit-checklist input');
         const save = () => { if (!currentEditingKey) return; localStorage.setItem(currentEditingKey, JSON.stringify({ text: text.value, habits: Array.from(habits).map(c => c.checked), wake: wake.value })); updateBoxVisuals(document.getElementById(`day-${currentEditingKey}`), currentEditingKey); updateSummary(); };
-        
         const nw = document.getElementById('cb-nw'), w = document.getElementById('cb-w');
         nw.onchange = () => { if (nw.checked) w.checked = false; save(); };
         w.onchange = () => { if (w.checked) nw.checked = false; save(); };
-
         wake.onblur = () => { wake.value = formatWakeTime(wake.value); save(); };
         text.oninput = save;
         habits.forEach(h => { if (h.id !== 'cb-nw' && h.id !== 'cb-w') h.onchange = save; });
