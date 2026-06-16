@@ -38,7 +38,7 @@
             width: 260px; height: 100dvh; background: var(--panel-bg); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
             border-right: 1px solid rgba(255, 255, 255, 0.08); position: fixed; left: -260px; top: 0; z-index: 1001;
             transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1); padding: 60px 24px; display: flex; flex-direction: column; gap: 30px;
-            cursor: pointer; /* Indicates it can be clicked to close */
+            cursor: pointer;
         }
         .stats-panel.open { left: 0; }
         .stats-toggle {
@@ -90,7 +90,7 @@
             max-height: 0; overflow: hidden; transition: max-height 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s; 
             opacity: 0; pointer-events: none;
         }
-        #meta-content.visible { max-height: 250px; opacity: 1; pointer-events: auto; margin-bottom: 2rem; }
+        #meta-content.visible { max-height: 500px; opacity: 1; pointer-events: auto; margin-bottom: 2rem; }
 
         .summary-box { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; padding: 0 10px; }
         .summary-item { font-size: 0.55rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; background: rgba(255,255,255,0.03); padding: 4px 6px; border-radius: 4px; }
@@ -99,6 +99,31 @@
         .view-controls { display: inline-flex; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 3px; }
         .view-btn { background: transparent; border: none; color: var(--text-secondary); padding: 6px 14px; font-size: 0.65rem; border-radius: 6px; cursor: pointer; text-transform: uppercase; }
         .view-btn.active { background: rgba(255, 255, 255, 0.1); color: #fff; }
+
+        /* Dashboard Agreements Styles */
+        .agreements-dashboard {
+            margin-top: 25px;
+            padding: 20px 10px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            text-align: left;
+        }
+        .agreement-note {
+            font-size: 0.55rem;
+            line-height: 1.4;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .agreement-note span {
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: 3px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+        }
 
         .heatmap-wrapper { width: 95%; max-width: 850px; margin: 100px auto 50px auto; padding-top: 30px; border-top: 1px solid #111; text-align: center; }
         .heatmap-grid { display: grid; grid-template-columns: repeat(53, 1fr); grid-template-rows: repeat(7, 1fr); gap: 4px; width: 100%; }
@@ -180,6 +205,14 @@
                 <button class="view-btn active" id="view-current-btn" onclick="setViewMode('current')">Current Month</button>
                 <button class="view-btn" id="view-year-btn" onclick="setViewMode('year')">Full Year</button>
             </div>
+
+            <!-- Dashboard Note: The Four Agreements -->
+            <div class="agreements-dashboard">
+                <div class="agreement-note"><span>I. Word</span>Be impeccable with your word</div>
+                <div class="agreement-note"><span>II. Personal</span>Do not take anything personally</div>
+                <div class="agreement-note"><span>III. Assumptions</span>Do not make assumptions</div>
+                <div class="agreement-note"><span>IV. Best</span>Always do your best</div>
+            </div>
         </div>
         
         <div id="calendar-root" class="calendar-container view-current"></div>
@@ -217,7 +250,7 @@
 </div>
 
 <script>
-    let currentEditingKey = null, currentScale = 2; // LOAD AT 2x
+    let currentEditingKey = null, currentScale = 2;
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -356,7 +389,7 @@
         const start = new Date(now.getFullYear(), 0, 1), end = new Date(now.getFullYear() + 1, 0, 1);
         const percent = (((now - start) / (end - start)) * 100).toFixed(1);
         
-        setZoom(2); // START AT 2x
+        setZoom(2);
 
         document.getElementById('percentage').innerText = percent;
         document.getElementById('full-date').innerText = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'Australia/Perth' }).format(new Date());
@@ -402,12 +435,8 @@
         });
 
         document.getElementById('body-root').onclick = (e) => {
-            // If background click, close EVERYTHING
             if (e.target.closest('.journal-panel') || e.target.closest('.stats-panel') || e.target.closest('.day-checkbox') || e.target.closest('.zoom-controls') || e.target.closest('.view-controls') || e.target.closest('.meta-toggle')) return;
-            
-            // Close stats if open
             if (document.getElementById('stats-panel').classList.contains('open')) toggleStats();
-            
             if (document.getElementById('journal-panel').classList.contains('open')) closeJournal();
             else { const n = getPerthTime(); openJournal(`${n.getFullYear()}-${n.getMonth()}-${n.getDate()}`, months[n.getMonth()], n.getDate()); }
         };
