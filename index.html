@@ -359,14 +359,25 @@
         return `${h}:${m.toString().padStart(2, '0')} AM`;
     }
 
-    function updateSummary() {
+function updateSummary() {
         const n = getPerthTime(), y = n.getFullYear(), m = n.getMonth(), d = n.getDate();
         let t = [0,0,0,0,0,0];
         for (let i = 1; i <= d; i++) {
             const data = JSON.parse(localStorage.getItem(`${y}-${m}-${i}`));
             if (data && data.habits) data.habits.forEach((c, idx) => { if (c) t[idx]++; });
         }
-        t.forEach((c, i) => { const el = document.getElementById(`summ-${i}`); if (el) el.innerText = `${c}/${d}`; });
+        t.forEach((c, i) => { 
+            const el = document.getElementById(`summ-${i}`); 
+            if (el) {
+                if (i === 5) {
+                    // Calculate percentage for W activity
+                    const pct = d > 0 ? Math.round((c / d) * 100) : 0;
+                    el.innerText = `${c}/${d} (${pct}%)`;
+                } else {
+                    el.innerText = `${c}/${d}`; 
+                }
+            }
+        });
         calculateWakeStats(); renderHeatmap();
     }
 
