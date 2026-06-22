@@ -23,6 +23,22 @@
             --color-fail: #610000;
         }
 
+        /* Password Lock Styles */
+        #lock-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); z-index: 10000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+        .lock-input {
+            background: #111; border: 1px solid #333; color: white;
+            padding: 15px; border-radius: 8px; text-align: center;
+            font-size: 1.5rem; outline: none; width: 150px;
+            font-family: inherit; letter-spacing: 5px;
+        }
+        .lock-input:focus { border-color: #666; }
+        .hidden-app { display: none !important; }
+
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
         body { 
             margin: 0; background-color: var(--bg-color); 
@@ -80,35 +96,13 @@
         .progress-fill { height: 100%; width: 0%; background: var(--bar-fill); transition: width 1.8s cubic-bezier(0.16, 1, 0.3, 1); }
         .current-date { margin-top: 1.5rem; font-size: 0.8rem; color: var(--text-secondary); padding-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.2em; }
 
-        /* The Four Agreements Dashboard Style */
-        .agreements-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin: 1.5rem 0;
-            padding: 1.5rem 10px;
-            border-top: 1px solid #1a1a1a;
-            border-bottom: 1px solid #1a1a1a;
-        }
-        .agreement-item {
-            font-size: 0.52rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            line-height: 1.4;
-            opacity: 0.6;
-        }
+        .agreements-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 1.5rem 0; padding: 1.5rem 10px; border-top: 1px solid #1a1a1a; border-bottom: 1px solid #1a1a1a; }
+        .agreement-item { font-size: 0.52rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; line-height: 1.4; opacity: 0.6; }
 
-        .meta-toggle { 
-            font-size: 0.55rem; color: var(--text-secondary); opacity: 0.4; letter-spacing: 0.3em; 
-            cursor: pointer; transition: 0.3s; margin-bottom: 2rem; display: inline-block;
-        }
+        .meta-toggle { font-size: 0.55rem; color: var(--text-secondary); opacity: 0.4; letter-spacing: 0.3em; cursor: pointer; transition: 0.3s; margin-bottom: 2rem; display: inline-block; }
         .meta-toggle:hover { opacity: 1; color: #fff; }
         
-        #meta-content { 
-            max-height: 0; overflow: hidden; transition: max-height 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s; 
-            opacity: 0; pointer-events: none;
-        }
+        #meta-content { max-height: 0; overflow: hidden; transition: max-height 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s; opacity: 0; pointer-events: none; }
         #meta-content.visible { max-height: 250px; opacity: 1; pointer-events: auto; margin-bottom: 2rem; }
 
         .summary-box { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; padding: 0 10px; }
@@ -164,87 +158,105 @@
 </head>
 <body id="body-root">
 
-<div class="stats-panel" id="stats-panel" onclick="toggleStats()">
-    <div class="stats-toggle"><span id="stats-arrow">→</span></div>
-    <div style="display:flex; flex-direction:column; gap:30px;">
-        <div class="stat-card"><span style="font-size:0.6rem; text-transform:uppercase; color:var(--text-secondary); letter-spacing:0.1em;">Avg Wake Up</span><span id="stat-avg" style="font-size:1.4rem; font-weight:200;">--:--</span></div>
-        <div class="stat-card"><span style="font-size:0.6rem; text-transform:uppercase; color:var(--text-secondary); letter-spacing:0.1em;">Last 7 Days</span><span id="stat-7day" style="font-size:1.4rem; font-weight:200;">--:--</span></div>
-        <div class="stat-card"><span style="font-size:0.6rem; text-transform:uppercase; color:var(--text-secondary); letter-spacing:0.1em;">Early Bird Score</span><span id="stat-score" style="font-size:1.4rem; font-weight:200;">0%</span></div>
-        <div class="stat-card"><span style="font-size:0.6rem; text-transform:uppercase; color:var(--text-secondary); letter-spacing:0.1em;">Personal Best</span><span id="stat-best" style="font-size:1.4rem; font-weight:200;">--:--</span></div>
-    </div>
+<!-- Password Overlay -->
+<div id="lock-screen">
+    <input type="password" id="pass-input" class="lock-input" placeholder="•" autofocus oninput="checkPass(this.value)">
 </div>
 
-<div class="zoom-controls">
-    <button class="zoom-btn" id="btn-1x" onclick="setZoom(1)">1x</button>
-    <button class="zoom-btn active" id="btn-2x" onclick="setZoom(2)">2x</button>
-</div>
-
-<div class="main-content">
-    <div class="wrapper" id="main-wrapper">
-        <h1 class="percentage-display"><span id="percentage">0</span><span>%</span></h1>
-        <div class="progress-container"><div class="progress-fill" id="progress-fill"></div></div>
-        <div class="current-date" id="full-date">---</div>
-
-        <!-- Always Visible Note: The Four Agreements -->
-        <div class="agreements-grid">
-            <div class="agreement-item">I. Be impeccable with your word</div>
-            <div class="agreement-item">II. Do not take anything personally</div>
-            <div class="agreement-item">III. Do not make assumptions</div>
-            <div class="agreement-item">IV. Always do your best</div>
+<!-- Main App Content (hidden by default) -->
+<div id="app-container" class="hidden-app">
+    <div class="stats-panel" id="stats-panel" onclick="toggleStats()">
+        <div class="stats-toggle"><span id="stats-arrow">→</span></div>
+        <div style="display:flex; flex-direction:column; gap:30px;">
+            <div class="stat-card"><span style="font-size:0.6rem; text-transform:uppercase; color:var(--text-secondary); letter-spacing:0.1em;">Avg Wake Up</span><span id="stat-avg" style="font-size:1.4rem; font-weight:200;">--:--</span></div>
+            <div class="stat-card"><span style="font-size:0.6rem; text-transform:uppercase; color:var(--text-secondary); letter-spacing:0.1em;">Last 7 Days</span><span id="stat-7day" style="font-size:1.4rem; font-weight:200;">--:--</span></div>
+            <div class="stat-card"><span style="font-size:0.6rem; text-transform:uppercase; color:var(--text-secondary); letter-spacing:0.1em;">Early Bird Score</span><span id="stat-score" style="font-size:1.4rem; font-weight:200;">0%</span></div>
+            <div class="stat-card"><span style="font-size:0.6rem; text-transform:uppercase; color:var(--text-secondary); letter-spacing:0.1em;">Personal Best</span><span id="stat-best" style="font-size:1.4rem; font-weight:200;">--:--</span></div>
         </div>
+    </div>
 
-        <div class="meta-toggle" onclick="toggleMeta()">INFO</div>
+    <div class="zoom-controls">
+        <button class="zoom-btn" id="btn-1x" onclick="setZoom(1)">1x</button>
+        <button class="zoom-btn active" id="btn-2x" onclick="setZoom(2)">2x</button>
+    </div>
 
-        <div id="meta-content">
-            <div class="summary-box">
-                <div class="summary-item">Med <span id="summ-0">0/0</span></div>
-                <div class="summary-item">Yoga <span id="summ-1">0/0</span></div>
-                <div class="summary-item">Work <span id="summ-2">0/0</span></div>
-                <div class="summary-item">Walk <span id="summ-3">0/0</span></div>
-                <div class="summary-item">NW <span id="summ-4">0/0</span></div>
-                <div class="summary-item" style="color:#ff4b2b">W <span id="summ-5">0/0</span></div>
+    <div class="main-content">
+        <div class="wrapper" id="main-wrapper">
+            <h1 class="percentage-display"><span id="percentage">0</span><span>%</span></h1>
+            <div class="progress-container"><div class="progress-fill" id="progress-fill"></div></div>
+            <div class="current-date" id="full-date">---</div>
+
+            <div class="agreements-grid">
+                <div class="agreement-item">I. Be impeccable with your word</div>
+                <div class="agreement-item">II. Do not take anything personally</div>
+                <div class="agreement-item">III. Do not make assumptions</div>
+                <div class="agreement-item">IV. Always do your best</div>
             </div>
-            <div class="view-controls">
-                <button class="view-btn active" id="view-current-btn" onclick="setViewMode('current')">Current Month</button>
-                <button class="view-btn" id="view-year-btn" onclick="setViewMode('year')">Full Year</button>
+
+            <div class="meta-toggle" onclick="toggleMeta()">INFO</div>
+
+            <div id="meta-content">
+                <div class="summary-box">
+                    <div class="summary-item">Med <span id="summ-0">0/0</span></div>
+                    <div class="summary-item">Yoga <span id="summ-1">0/0</span></div>
+                    <div class="summary-item">Work <span id="summ-2">0/0</span></div>
+                    <div class="summary-item">Walk <span id="summ-3">0/0</span></div>
+                    <div class="summary-item">NW <span id="summ-4">0/0</span></div>
+                    <div class="summary-item" style="color:#ff4b2b">W <span id="summ-5">0/0</span></div>
+                </div>
+                <div class="view-controls">
+                    <button class="view-btn active" id="view-current-btn" onclick="setViewMode('current')">Current Month</button>
+                    <button class="view-btn" id="view-year-btn" onclick="setViewMode('year')">Full Year</button>
+                </div>
             </div>
-        </div>
-        
-        <div id="calendar-root" class="calendar-container view-current"></div>
-    </div>
-
-    <div class="heatmap-wrapper">
-        <div class="heatmap-grid" id="heatmap-grid"></div>
-    </div>
-</div>
-
-<div class="journal-panel" id="journal-panel">
-    <div class="journal-header-container">
-        <div id="journal-date-title" style="font-size:1.1rem; font-weight:300;">Date</div>
-        <div class="nav-btns"><button class="nav-btn" onclick="changeDay(-1)">←</button><button class="nav-btn" onclick="changeDay(1)">→</button></div>
-    </div>
-    <div class="wake-section"><span style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-secondary);">Wake Up</span><input type="text" id="wake-time" class="wake-input" placeholder="--:-- AM"></div>
-    <div id="habit-checklist" style="display:flex; flex-direction:column; flex-grow:1;">
-        <label class="habit-item"><input type="checkbox" data-habit="0"><span class="custom-checkbox"></span>Meditate</label>
-        <label class="habit-item"><input type="checkbox" data-habit="1"><span class="custom-checkbox"></span>Yoga</label>
-        <label class="habit-item"><input type="checkbox" data-habit="2"><span class="custom-checkbox"></span>Workout</label>
-        <label class="habit-item"><input type="checkbox" data-habit="3"><span class="custom-checkbox"></span>Walk</label>
-        <textarea id="journal-text" placeholder=""></textarea>
-        
-        <div class="w-choice-container">
-            <label class="habit-item"><input type="checkbox" data-habit="4" id="cb-nw"><span class="custom-checkbox"></span>NW</label>
-            <label class="habit-item"><input type="checkbox" data-habit="5" id="cb-w"><span class="custom-checkbox"></span>W</label>
+            
+            <div id="calendar-root" class="calendar-container view-current"></div>
         </div>
 
-        <div style="margin-top:20px; display:flex; gap:10px;">
-            <button class="backup-btn" onclick="saveJSON()">Save</button>
-            <button class="backup-btn" onclick="document.getElementById('load-input').click()">Load</button>
-            <input type="file" id="load-input" style="display:none" onchange="loadJSON(event)">
+        <div class="heatmap-wrapper">
+            <div class="heatmap-grid" id="heatmap-grid"></div>
+        </div>
+    </div>
+
+    <div class="journal-panel" id="journal-panel">
+        <div class="journal-header-container">
+            <div id="journal-date-title" style="font-size:1.1rem; font-weight:300;">Date</div>
+            <div class="nav-btns"><button class="nav-btn" onclick="changeDay(-1)">←</button><button class="nav-btn" onclick="changeDay(1)">→</button></div>
+        </div>
+        <div class="wake-section"><span style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-secondary);">Wake Up</span><input type="text" id="wake-time" class="wake-input" placeholder="--:-- AM"></div>
+        <div id="habit-checklist" style="display:flex; flex-direction:column; flex-grow:1;">
+            <label class="habit-item"><input type="checkbox" data-habit="0"><span class="custom-checkbox"></span>Meditate</label>
+            <label class="habit-item"><input type="checkbox" data-habit="1"><span class="custom-checkbox"></span>Yoga</label>
+            <label class="habit-item"><input type="checkbox" data-habit="2"><span class="custom-checkbox"></span>Workout</label>
+            <label class="habit-item"><input type="checkbox" data-habit="3"><span class="custom-checkbox"></span>Walk</label>
+            <textarea id="journal-text" placeholder=""></textarea>
+            
+            <div class="w-choice-container">
+                <label class="habit-item"><input type="checkbox" data-habit="4" id="cb-nw"><span class="custom-checkbox"></span>NW</label>
+                <label class="habit-item"><input type="checkbox" data-habit="5" id="cb-w"><span class="custom-checkbox"></span>W</label>
+            </div>
+
+            <div style="margin-top:20px; display:flex; gap:10px;">
+                <button class="backup-btn" onclick="saveJSON()">Save</button>
+                <button class="backup-btn" onclick="document.getElementById('load-input').click()">Load</button>
+                <input type="file" id="load-input" style="display:none" onchange="loadJSON(event)">
+            </div>
         </div>
     </div>
 </div>
 
 <script>
+    // PASSWORD LOGIC
+    function checkPass(val) {
+        if (val === "2") {
+            document.getElementById('lock-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('lock-screen').style.display = 'none';
+                document.getElementById('app-container').classList.remove('hidden-app');
+            }, 500);
+        }
+    }
+
     let currentEditingKey = null, currentScale = 2;
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -359,7 +371,7 @@
         return `${h}:${m.toString().padStart(2, '0')} AM`;
     }
 
-function updateSummary() {
+    function updateSummary() {
         const n = getPerthTime(), y = n.getFullYear(), m = n.getMonth(), d = n.getDate();
         let t = [0,0,0,0,0,0];
         for (let i = 1; i <= d; i++) {
@@ -370,7 +382,6 @@ function updateSummary() {
             const el = document.getElementById(`summ-${i}`); 
             if (el) {
                 if (i === 5) {
-                    // Calculate percentage for W activity
                     const pct = d > 0 ? Math.round((c / d) * 100) : 0;
                     el.innerText = `${c}/${d} (${pct}%)`;
                 } else {
@@ -441,7 +452,7 @@ function updateSummary() {
         });
 
         document.getElementById('body-root').onclick = (e) => {
-            if (e.target.closest('.journal-panel') || e.target.closest('.stats-panel') || e.target.closest('.day-checkbox') || e.target.closest('.zoom-controls') || e.target.closest('.view-controls') || e.target.closest('.meta-toggle')) return;
+            if (e.target.closest('.journal-panel') || e.target.closest('.stats-panel') || e.target.closest('.day-checkbox') || e.target.closest('.zoom-controls') || e.target.closest('.view-controls') || e.target.closest('.meta-toggle') || e.target.closest('#lock-screen')) return;
             if (document.getElementById('stats-panel').classList.contains('open')) toggleStats();
             if (document.getElementById('journal-panel').classList.contains('open')) closeJournal();
             else { const n = getPerthTime(); openJournal(`${n.getFullYear()}-${n.getMonth()}-${n.getDate()}`, months[n.getMonth()], n.getDate()); }
@@ -462,5 +473,3 @@ function updateSummary() {
 </script>
 </body>
 </html>
-```
-41s
