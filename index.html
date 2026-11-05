@@ -12,12 +12,11 @@
             --bg-color: #0a0a0a;
             --surface-color: #141414;
             --surface-border: #222222;
-            --text-primary: #f0f0f0;
-            --text-secondary: #777777;
-            --accent-gold: #f1c40f;
-            --accent-blue: #58a6ff;
-            --accent-green: #2ecc71;
-            --danger: #e74c3c;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --text-muted: #555555;
+            --btn-bg: #1a1a1a;
+            --btn-border: #333333;
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
@@ -28,19 +27,19 @@
         }
 
         .app-container {
-            width: 100%; max-width: 540px; padding: 16px 14px 100px 14px;
+            width: 100%; max-width: 520px; padding: 16px 14px 100px 14px;
             display: flex; flex-direction: column; gap: 16px;
         }
 
         .tabs-nav {
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
-            background: var(--surface-color); padding: 4px; border-radius: 10px;
+            background: var(--surface-color); padding: 4px; border-radius: 8px;
             border: 1px solid var(--surface-border); position: sticky; top: 10px; z-index: 50;
         }
         .tab-btn {
             background: transparent; border: none; color: var(--text-secondary);
-            padding: 9px 0; border-radius: 7px; font-weight: 700; font-size: 0.75rem;
-            cursor: pointer; text-align: center; transition: 0.2s;
+            padding: 8px 0; border-radius: 6px; font-weight: 600; font-size: 0.75rem;
+            cursor: pointer; text-align: center; transition: 0.15s;
         }
         .tab-btn.active { background: #262626; color: #fff; }
 
@@ -48,7 +47,7 @@
             display: flex; justify-content: space-between; align-items: center;
             padding-bottom: 8px; border-bottom: 1px solid var(--surface-border);
         }
-        .section-title { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; }
+        .section-title { font-size: 1.1rem; font-weight: 600; letter-spacing: -0.02em; }
         .session-date-picker {
             background: transparent; border: 1px solid var(--surface-border);
             color: var(--text-secondary); font-size: 0.8rem; border-radius: 6px; padding: 4px 8px;
@@ -56,120 +55,117 @@
 
         .card {
             background: var(--surface-color); border: 1px solid var(--surface-border);
-            border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px;
+            border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 10px;
         }
         .card-top { display: flex; justify-content: space-between; align-items: baseline; }
         .exercise-name { font-size: 0.95rem; font-weight: 600; margin: 0; }
-        .exercise-target { font-size: 0.7rem; color: var(--accent-gold); text-transform: uppercase; font-weight: 600; }
+        .exercise-target { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 500; }
         
         .prev-reference {
             background: #090909; border-radius: 6px; padding: 6px 10px;
             font-size: 0.75rem; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center;
         }
-        .prev-data { color: #aaa; font-family: monospace; font-size: 0.8rem; }
+        .prev-data { color: #ccc; font-family: monospace; font-size: 0.75rem; }
         .chart-icon-btn {
-            background: transparent; border: none; color: var(--accent-blue);
-            cursor: pointer; font-size: 0.75rem; padding: 2px 4px; font-weight: 600;
+            background: transparent; border: none; color: #fff;
+            cursor: pointer; font-size: 0.7rem; padding: 2px 4px; text-decoration: underline; opacity: 0.6;
         }
+        .chart-icon-btn:hover { opacity: 1; }
 
-        /* Per-Set Input Grid */
+        /* Sets input layout */
         .sets-block {
             display: flex; flex-direction: column; gap: 6px; background: #0c0c0c;
-            padding: 8px 10px; border-radius: 8px; border: 1px solid #1a1a1a;
+            padding: 8px 10px; border-radius: 6px; border: 1px solid #1a1a1a;
         }
         .set-row {
             display: grid; grid-template-columns: 45px 1fr 18px 1fr; gap: 8px;
             align-items: center;
         }
-        .set-tag { font-size: 0.7rem; font-weight: 700; color: #666; text-transform: uppercase; }
+        .set-tag { font-size: 0.7rem; font-weight: 600; color: #666; text-transform: uppercase; }
         .set-x { font-size: 0.75rem; color: #444; text-align: center; }
         .num-input {
             width: 100%; background: #050505; border: 1px solid #282828; border-radius: 6px;
             color: #fff; padding: 7px 0; text-align: center; font-size: 0.9rem; font-weight: 600;
             outline: none;
         }
-        .num-input:focus { border-color: #666; }
+        .num-input:focus { border-color: #555; }
 
         .card-footer-grid {
-            display: grid; grid-template-columns: 80px 1fr auto; gap: 8px; align-items: center;
+            display: grid; grid-template-columns: 75px 1fr auto; gap: 8px; align-items: center;
         }
         .notes-input {
             width: 100%; background: #080808; border: 1px solid #222; border-radius: 6px;
             color: #bbb; padding: 8px 10px; font-size: 0.75rem; outline: none;
         }
         .save-btn {
-            background: #ffffff; color: #000; border: none; font-weight: 700;
+            background: #ffffff; color: #000; border: none; font-weight: 600;
             font-size: 0.75rem; padding: 8px 14px; border-radius: 6px; cursor: pointer;
             transition: all 0.2s ease; white-space: nowrap;
         }
         .save-btn.undo-active {
-            background: #27ae60; color: #fff; animation: pulseUndo 1s infinite alternate;
-        }
-        @keyframes pulseUndo {
-            from { background-color: #27ae60; }
-            to { background-color: #219653; }
+            background: #2a2a2a; color: #fff; border: 1px solid #555;
         }
 
-        /* Dashboard & Charts */
-        .dash-metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        /* Stats & Metric Cards */
+        .dash-metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
         .dash-metric-card {
             background: var(--surface-color); border: 1px solid var(--surface-border);
-            padding: 16px 14px; border-radius: 10px; text-align: left;
+            padding: 14px; border-radius: 8px; text-align: left;
         }
-        .metric-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 6px; font-weight: 500; }
-        .metric-value { font-size: 2.2rem; font-weight: 300; margin: 0; line-height: 1; color: #ffffff; }
-        .metric-sub { font-size: 0.65rem; color: #555; margin-top: 6px; }
+        .metric-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 4px; }
+        .metric-value { font-size: 2rem; font-weight: 200; margin: 0; line-height: 1; color: #ffffff; }
 
-        /* Filter Controls */
-        .chart-filter-bar {
-            display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 12px;
+        /* Day Toggle Selector for Stacked Charts */
+        .day-toggle-bar {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 14px;
         }
-        .filter-pill {
-            background: #181818; border: 1px solid #2a2a2a; color: var(--text-secondary);
-            font-size: 0.7rem; font-weight: 700; padding: 6px 12px; border-radius: 20px;
-            cursor: pointer; transition: 0.2s;
+        .day-toggle-btn {
+            background: #141414; border: 1px solid var(--surface-border); color: var(--text-secondary);
+            font-size: 0.75rem; font-weight: 600; padding: 8px 0; border-radius: 6px;
+            cursor: pointer; transition: 0.15s; text-align: center;
         }
-        .filter-pill.active {
-            background: var(--accent-blue); color: #000; border-color: var(--accent-blue);
-        }
-        .chart-select-inline {
-            background: #121212; border: 1px solid #333; color: #ddd;
-            font-size: 0.7rem; padding: 5px 8px; border-radius: 6px; outline: none; margin-left: auto;
+        .day-toggle-btn.active {
+            background: #262626; color: #fff; border-color: #444;
         }
 
-        /* Stacked Chart Card */
+        /* Stacked Charts Container */
         .stacked-charts-wrapper {
-            display: flex; flex-direction: column; gap: 14px;
+            display: flex; flex-direction: column; gap: 12px;
         }
         .chart-card-stacked {
             background: var(--surface-color); border: 1px solid var(--surface-border);
-            border-radius: 10px; padding: 14px 14px 10px 14px;
+            border-radius: 8px; padding: 12px 12px 10px 12px;
         }
         .chart-card-header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;
         }
-        .chart-card-title { font-size: 0.85rem; font-weight: 600; color: #f0f0f0; }
-        .chart-card-pr { font-size: 0.75rem; font-weight: 700; color: var(--accent-gold); font-family: monospace; }
-        .chart-canvas-box { position: relative; height: 180px; width: 100%; }
+        .chart-card-title { font-size: 0.85rem; font-weight: 600; color: #ffffff; }
+        .chart-card-pr { font-size: 0.75rem; color: var(--text-secondary); font-family: monospace; }
+        .chart-canvas-box { position: relative; height: 170px; width: 100%; }
 
         .history-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
         .history-item {
             background: var(--surface-color); border: 1px solid var(--surface-border);
-            border-radius: 8px; padding: 10px 12px; font-size: 0.75rem;
+            border-radius: 6px; padding: 10px 12px; font-size: 0.75rem;
             display: flex; justify-content: space-between; align-items: center;
         }
         .cloud-badge {
-            font-size: 0.65rem; color: var(--accent-green); display: flex;
-            align-items: center; gap: 4px; font-weight: 600;
+            font-size: 0.65rem; color: var(--text-secondary); display: flex;
+            align-items: center; gap: 4px; font-weight: 500;
         }
+        .delete-btn {
+            background: transparent; border: none; color: #555; cursor: pointer;
+            font-size: 0.8rem; padding: 2px 6px;
+        }
+        .delete-btn:hover { color: #fff; }
     </style>
 </head>
 <body>
 
 <div id="app-container" class="app-container">
     <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:0.75rem; font-weight:700; letter-spacing:0.05em; color:var(--text-secondary);">STRENGTH PROGRESSION</span>
-        <span id="sync-status" class="cloud-badge">☁️ Connected</span>
+        <span style="font-size:0.75rem; font-weight:600; letter-spacing:0.05em; color:var(--text-secondary);">POWER & HYPERTROPHY</span>
+        <span id="sync-status" class="cloud-badge">Synced</span>
     </div>
 
     <nav class="tabs-nav">
@@ -226,7 +222,7 @@
 
     let currentTab = "LEGS";
     let trainingLog = JSON.parse(localStorage.getItem('workout_log_cache')) || [];
-    let chartViewMode = "LEGS";
+    let chartDay = "LEGS"; // "LEGS", "PUSH", or "PULL"
     let activeChartInstances = [];
     let undoTimers = {};
 
@@ -241,10 +237,10 @@
         trainingLog = logs;
         localStorage.setItem('workout_log_cache', JSON.stringify(trainingLog));
         renderTabContent();
-        document.getElementById('sync-status').textContent = "☁️ Synced";
+        document.getElementById('sync-status').textContent = "Synced";
     }, error => {
         console.error("Firebase read error:", error);
-        document.getElementById('sync-status').textContent = "⚠️ Permission Denied";
+        document.getElementById('sync-status').textContent = "Offline";
     });
 
     function switchTab(tab) {
@@ -255,8 +251,8 @@
         renderTabContent();
     }
 
-    function viewExerciseChart(exerciseId) {
-        chartViewMode = exerciseId;
+    function viewDayCharts(day) {
+        chartDay = day;
         switchTab('DASH');
     }
 
@@ -344,7 +340,7 @@
 
                 <div class="prev-reference">
                     <span>Last: <span class="prev-data">${prevDisplay}</span></span>
-                    <button class="chart-icon-btn" onclick="viewExerciseChart('${exercise.id}')">📈 Chart</button>
+                    <button class="chart-icon-btn" onclick="viewDayCharts('${currentTab}')">Charts</button>
                 </div>
 
                 <div class="sets-block">
@@ -352,7 +348,7 @@
                 </div>
 
                 <div class="card-footer-grid">
-                    <input type="number" id="rir_${exercise.id}" class="num-input" placeholder="RIR 0-3">
+                    <input type="number" id="rir_${exercise.id}" class="num-input" placeholder="RIR">
                     <input type="text" id="notes_${exercise.id}" class="notes-input" placeholder="Notes">
                     <button id="btn_${exercise.id}" class="save-btn" onclick="handleLogClick('${exercise.id}', ${numSets})">Log</button>
                 </div>
@@ -411,7 +407,7 @@
 
         btn.classList.add('undo-active');
         btn.dataset.lastEntryId = logId;
-        btn.textContent = "✓ Logged (Undo?)";
+        btn.textContent = "Undo";
 
         undoTimers[exerciseId] = setTimeout(() => {
             if (btn) {
@@ -421,6 +417,7 @@
         }, 5000);
     }
 
+    // --- DASHBOARD & STACKED CHARTS ---
     function renderDashboard(container) {
         const totalWorkouts = new Set(trainingLog.map(i => `${i.date}_${i.day}`)).size;
         
@@ -442,40 +439,16 @@
 
         const improvingRatio = evaluatedCount > 0 ? `${improvingCount}/${evaluatedCount}` : "0/0";
 
-        let exercisesToRender = [];
-        if (chartViewMode === "LEGS") {
-            exercisesToRender = ROUTINE.LEGS;
-        } else if (chartViewMode === "PUSH") {
-            exercisesToRender = ROUTINE.PUSH;
-        } else if (chartViewMode === "PULL") {
-            exercisesToRender = ROUTINE.PULL;
-        } else if (chartViewMode === "ALL") {
-            exercisesToRender = [...ROUTINE.LEGS, ...ROUTINE.PUSH, ...ROUTINE.PULL];
-        } else {
-            Object.values(ROUTINE).forEach(dayList => {
-                const match = dayList.find(e => e.id === chartViewMode);
-                if (match) exercisesToRender = [match];
-            });
-            if (exercisesToRender.length === 0) exercisesToRender = ROUTINE.LEGS;
-        }
+        // Exercises for currently selected day
+        const dayExercises = ROUTINE[chartDay] || ROUTINE.LEGS;
 
-        let selectOptions = `<option value="" disabled ${!["LEGS","PUSH","PULL","ALL"].includes(chartViewMode) ? '' : 'selected'}>Pick Individual Lift...</option>`;
-        Object.keys(ROUTINE).forEach(day => {
-            selectOptions += `<optgroup label="${day}">`;
-            ROUTINE[day].forEach(ex => {
-                const isSelected = ex.id === chartViewMode ? 'selected' : '';
-                selectOptions += `<option value="${ex.id}" ${isSelected}>${ex.name}</option>`;
-            });
-            selectOptions += `</optgroup>`;
-        });
-
-        let chartsCardsHtml = "";
-        exercisesToRender.forEach(ex => {
+        let chartsHtml = "";
+        dayExercises.forEach(ex => {
             const exLogs = trainingLog.filter(l => l.exerciseId === ex.id);
             let peak = 0;
             exLogs.forEach(l => { if (l.weight > peak) peak = l.weight; });
 
-            chartsCardsHtml += `
+            chartsHtml += `
                 <div class="chart-card-stacked">
                     <div class="chart-card-header">
                         <span class="chart-card-title">${ex.name}</span>
@@ -490,41 +463,40 @@
 
         container.innerHTML = `
             <div class="section-header">
-                <div class="section-title">STRENGTH PROGRESSION</div>
+                <div class="section-title">PROGRESSION</div>
             </div>
 
             <div class="dash-metric-grid">
                 <div class="dash-metric-card">
                     <div class="metric-label">Workouts completed</div>
                     <div class="metric-value">${totalWorkouts}</div>
-                    <div class="metric-sub">Logged sessions</div>
                 </div>
                 <div class="dash-metric-card">
                     <div class="metric-label">Exercises improving</div>
                     <div class="metric-value">${improvingRatio}</div>
-                    <div class="metric-sub">Strength trend positive</div>
                 </div>
             </div>
 
-            <div class="chart-filter-bar">
-                <button class="filter-pill ${chartViewMode === 'LEGS' ? 'active' : ''}" onclick="setChartFilter('LEGS')">LEGS</button>
-                <button class="filter-pill ${chartViewMode === 'PUSH' ? 'active' : ''}" onclick="setChartFilter('PUSH')">PUSH</button>
-                <button class="filter-pill ${chartViewMode === 'PULL' ? 'active' : ''}" onclick="setChartFilter('PULL')">PULL</button>
-                <button class="filter-pill ${chartViewMode === 'ALL' ? 'active' : ''}" onclick="setChartFilter('ALL')">ALL</button>
-                <select class="chart-select-inline" onchange="setChartFilter(this.value)">
-                    ${selectOptions}
-                </select>
+            <!-- Day Toggle Bar for Stacked Charts -->
+            <div class="day-toggle-bar">
+                <button class="day-toggle-btn ${chartDay === 'LEGS' ? 'active' : ''}" onclick="selectChartDay('LEGS')">LEGS</button>
+                <button class="day-toggle-btn ${chartDay === 'PUSH' ? 'active' : ''}" onclick="selectChartDay('PUSH')">PUSH</button>
+                <button class="day-toggle-btn ${chartDay === 'PULL' ? 'active' : ''}" onclick="selectChartDay('PULL')">PULL</button>
             </div>
 
+            <!-- All exercises for selected day stacked vertically -->
             <div class="stacked-charts-wrapper">
-                ${chartsCardsHtml}
+                ${chartsHtml}
             </div>
 
-            <div style="font-size: 0.8rem; font-weight: 700; margin-top: 25px; color: var(--text-secondary);">RECENT ACTIVITY</div>
+            <div style="font-size: 0.8rem; font-weight: 600; margin-top: 25px; color: var(--text-secondary);">RECENT ACTIVITY</div>
             <div class="history-list" id="recent-list"></div>
         `;
 
-        renderAllStackedCharts(exercisesToRender);
+        // Render each chart safely via RAF
+        requestAnimationFrame(() => {
+            renderStackedChartsForDay(dayExercises);
+        });
 
         const recentContainer = document.getElementById('recent-list');
         const reversedLog = [...trainingLog].reverse().slice(0, 8);
@@ -539,22 +511,24 @@
                 row.innerHTML = `
                     <div>
                         <div style="font-weight: 600;">${item.exerciseId.toUpperCase()}</div>
-                        <div style="color: #888; font-size: 0.65rem;">${item.date} · ${summary}</div>
+                        <div style="color: #777; font-size: 0.65rem;">${item.date} · ${summary}</div>
                     </div>
-                    <button style="background:transparent; border:none; color: var(--danger); cursor:pointer; font-weight: bold;" onclick="deleteEntry('${item.id}')">✕</button>
+                    <button class="delete-btn" onclick="deleteEntry('${item.id}')">✕</button>
                 `;
                 recentContainer.appendChild(row);
             });
         }
     }
 
-    function setChartFilter(mode) {
-        chartViewMode = mode;
+    function selectChartDay(day) {
+        chartDay = day;
         renderDashboard(document.getElementById('tab-content'));
     }
 
-    function renderAllStackedCharts(exercises) {
-        activeChartInstances.forEach(inst => inst.destroy());
+    function renderStackedChartsForDay(exercises) {
+        activeChartInstances.forEach(inst => {
+            try { inst.destroy(); } catch(e){}
+        });
         activeChartInstances = [];
 
         exercises.forEach(ex => {
@@ -583,14 +557,14 @@
                     datasets: [{
                         label: 'Top Set (kg)',
                         data: displayData,
-                        borderColor: '#5dade2',
-                        backgroundColor: 'rgba(93, 173, 226, 0.12)',
-                        pointBackgroundColor: '#aed6f1',
-                        pointBorderColor: '#1b4f72',
+                        borderColor: '#ffffff',
+                        backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#141414',
                         pointBorderWidth: 2,
-                        pointRadius: 5,
-                        pointHoverRadius: 7,
-                        tension: 0.25,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.15,
                         fill: true
                     }]
                 },
@@ -600,31 +574,32 @@
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: '#1b1b1b',
-                            titleColor: '#ffffff',
-                            bodyColor: '#5dade2',
+                            backgroundColor: '#1a1a1a',
+                            titleColor: '#888888',
+                            bodyColor: '#ffffff',
                             borderColor: '#333333',
                             borderWidth: 1,
                             padding: 8,
+                            displayColors: false,
                             callbacks: {
-                                label: (context) => `Top Set: ${context.parsed.y} kg`
+                                label: (context) => `${context.parsed.y} kg`
                             }
                         }
                     },
                     scales: {
                         x: {
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            ticks: { color: '#666', font: { size: 9 } }
+                            grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                            ticks: { color: '#555', font: { size: 9 } }
                         },
                         y: {
                             grid: { 
-                                color: 'rgba(255, 255, 255, 0.08)',
-                                borderDash: [4, 4] 
+                                color: 'rgba(255, 255, 255, 0.05)',
+                                borderDash: [3, 3] 
                             },
                             ticks: { 
-                                color: '#666', 
+                                color: '#555', 
                                 font: { size: 9 },
-                                callback: (val) => `${val} kg`
+                                callback: (val) => `${val}kg`
                             }
                         }
                     }
@@ -644,10 +619,9 @@
 
         if (id && id !== 'undefined') {
             workoutDbRef.child(id).remove().then(() => {
-                document.getElementById('sync-status').textContent = "☁️ Synced";
+                document.getElementById('sync-status').textContent = "Synced";
             }).catch(err => {
                 console.error("Firebase delete error:", err);
-                alert("Firebase delete warning: " + err.message);
             });
         }
     }
