@@ -15,6 +15,7 @@
             --text-primary: #f0f0f0;
             --text-secondary: #777777;
             --accent-gold: #f1c40f;
+            --accent-blue: #58a6ff;
             --accent-green: #2ecc71;
             --danger: #e74c3c;
         }
@@ -40,7 +41,7 @@
         .hidden { display: none !important; }
 
         .app-container {
-            width: 100%; max-width: 520px; padding: 16px 14px 100px 14px;
+            width: 100%; max-width: 540px; padding: 16px 14px 100px 14px;
             display: flex; flex-direction: column; gap: 16px;
         }
 
@@ -76,39 +77,73 @@
         
         .prev-reference {
             background: #090909; border-radius: 6px; padding: 6px 10px;
-            font-size: 0.75rem; color: var(--text-secondary); display: flex; justify-content: space-between;
+            font-size: 0.75rem; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center;
         }
         .prev-data { color: #aaa; font-family: monospace; font-size: 0.8rem; }
-
-        .set-inputs-grid {
-            display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 6px;
+        .chart-icon-btn {
+            background: transparent; border: none; color: var(--accent-blue);
+            cursor: pointer; font-size: 0.75rem; padding: 2px 4px; font-weight: 600;
         }
-        .input-group { display: flex; flex-direction: column; gap: 3px; }
-        .input-label { font-size: 0.6rem; text-transform: uppercase; color: var(--text-secondary); text-align: center; }
+
+        /* Per-Set Dynamic Input Grid */
+        .sets-block {
+            display: flex; flex-direction: column; gap: 6px; background: #0c0c0c;
+            padding: 8px 10px; border-radius: 8px; border: 1px solid #1a1a1a;
+        }
+        .set-row {
+            display: grid; grid-template-columns: 45px 1fr 18px 1fr; gap: 8px;
+            align-items: center;
+        }
+        .set-tag { font-size: 0.7rem; font-weight: 700; color: #666; text-transform: uppercase; }
+        .set-x { font-size: 0.75rem; color: #444; text-align: center; }
         .num-input {
-            width: 100%; background: #080808; border: 1px solid #2a2a2a; border-radius: 6px;
-            color: #fff; padding: 8px 0; text-align: center; font-size: 0.95rem; font-weight: 600;
+            width: 100%; background: #050505; border: 1px solid #282828; border-radius: 6px;
+            color: #fff; padding: 7px 0; text-align: center; font-size: 0.9rem; font-weight: 600;
             outline: none;
         }
         .num-input:focus { border-color: #666; }
 
-        .card-actions { display: flex; gap: 8px; align-items: center; }
+        .card-footer-grid {
+            display: grid; grid-template-columns: 80px 1fr auto; gap: 8px; align-items: center;
+        }
         .notes-input {
-            flex-grow: 1; background: #080808; border: 1px solid #222; border-radius: 6px;
+            width: 100%; background: #080808; border: 1px solid #222; border-radius: 6px;
             color: #bbb; padding: 8px 10px; font-size: 0.75rem; outline: none;
         }
         .save-btn {
             background: #ffffff; color: #000; border: none; font-weight: 700;
             font-size: 0.75rem; padding: 8px 14px; border-radius: 6px; cursor: pointer;
+            transition: all 0.2s ease; white-space: nowrap;
+        }
+        .save-btn.undo-active {
+            background: #27ae60; color: #fff; animation: pulseUndo 1s infinite alternate;
+        }
+        @keyframes pulseUndo {
+            from { background-color: #27ae60; }
+            to { background-color: #219653; }
         }
 
-        .dash-metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        /* Dashboard Styles */
+        .dash-metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
         .dash-metric-card {
             background: var(--surface-color); border: 1px solid var(--surface-border);
-            padding: 14px; border-radius: 10px; text-align: center;
+            padding: 16px 14px; border-radius: 10px; text-align: left;
         }
-        .metric-value { font-size: 2rem; font-weight: 200; margin: 2px 0; }
-        .metric-label { font-size: 0.65rem; text-transform: uppercase; color: var(--text-secondary); }
+        .metric-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 6px; font-weight: 500; }
+        .metric-value { font-size: 2.2rem; font-weight: 300; margin: 0; line-height: 1; color: #ffffff; }
+        .metric-sub { font-size: 0.65rem; color: #555; margin-top: 6px; }
+
+        .chart-container-box {
+            background: var(--surface-color); border: 1px solid var(--surface-border);
+            border-radius: 10px; padding: 16px; margin-top: 10px;
+        }
+        .chart-selector-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+        }
+        .chart-exercise-select {
+            background: #090909; color: #fff; border: 1px solid #333;
+            border-radius: 6px; padding: 6px 10px; font-size: 0.8rem; outline: none;
+        }
 
         .history-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
         .history-item {
@@ -116,7 +151,6 @@
             border-radius: 8px; padding: 10px 12px; font-size: 0.75rem;
             display: flex; justify-content: space-between; align-items: center;
         }
-
         .cloud-badge {
             font-size: 0.65rem; color: var(--accent-green); display: flex;
             align-items: center; gap: 4px; font-weight: 600;
@@ -125,18 +159,16 @@
 </head>
 <body>
 
-<!-- Unlock screen (Pin: 2) -->
 <div id="lock-screen">
     <input type="password" id="pass-input" class="lock-input" placeholder="•" autofocus oninput="checkPass(this.value)">
 </div>
 
 <div id="app-container" class="hidden app-container">
     <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:0.75rem; font-weight:700; letter-spacing:0.05em; color:var(--text-secondary);">POWER & HYPERTROPHY</span>
+        <span style="font-size:0.75rem; font-weight:700; letter-spacing:0.05em; color:var(--text-secondary);">STRENGTH PROGRESSION</span>
         <span id="sync-status" class="cloud-badge">☁️ Connected</span>
     </div>
 
-    <!-- Navigation -->
     <nav class="tabs-nav">
         <button class="tab-btn active" onclick="switchTab('LEGS')">LEGS</button>
         <button class="tab-btn" onclick="switchTab('PUSH')">PUSH</button>
@@ -144,16 +176,14 @@
         <button class="tab-btn" onclick="switchTab('DASH')">STATS</button>
     </nav>
 
-    <!-- Content Area -->
     <div id="tab-content"></div>
 </div>
 
-<!-- Firebase SDK (Uses identical version to your trading tracker) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
-    // --- FIREBASE CONFIG (Connected to journal-a003f) ---
     const firebaseConfig = {
         apiKey: "AIzaSyCQ4vHqGiv_yRkA0zZaaOU24gxhqBkxnv4",
         authDomain: "journal-a003f.firebaseapp.com",
@@ -166,12 +196,8 @@
 
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-
-    // STRICT NAMESPACE: Everything in this tracker is isolated in /workout_tracker
-    // It will NEVER touch /trades, /ts_trades, /completed_trades, etc.
     const workoutDbRef = database.ref('workout_tracker/logs');
 
-    // --- PIN LOCK ---
     function checkPass(val) {
         if (val === "2") {
             const ls = document.getElementById('lock-screen');
@@ -183,42 +209,41 @@
         }
     }
 
-    // --- ROUTINE DEFINITION ---
     const ROUTINE = {
         LEGS: [
-            { id: "squat", name: "Barbell Back Squat", target: "3 × 6–8 reps" },
-            { id: "rdl", name: "Barbell Romanian Deadlift", target: "3 × 8–10 reps" },
-            { id: "calf_core", name: "Standing Calf + Deadbug", target: "2 × 15 / 10 side" },
-            { id: "swings", name: "2-Hand KB Swings (Finisher)", target: "5 × 10 EMOM (50 reps)" }
+            { id: "squat", name: "Barbell Back Squat", target: "3 × 6–8 reps", sets: 3 },
+            { id: "rdl", name: "Barbell Romanian Deadlift", target: "3 × 8–10 reps", sets: 3 },
+            { id: "calf_core", name: "Standing Calf + Deadbug", target: "2 × 15 / 10 side", sets: 2 },
+            { id: "swings", name: "2-Hand KB Swings (Finisher)", target: "5 × 10 EMOM (50 reps)", sets: 5 }
         ],
         PUSH: [
-            { id: "kb_push_press", name: "KB Push Press (Power Primer)", target: "3 × 5 / side (Snappy)" },
-            { id: "ohp", name: "Standing Barbell OHP", target: "3 × 6–8 reps" },
-            { id: "pushups", name: "Deep Parallette Push-ups", target: "3 × 8–12 reps" },
-            { id: "lateral_raises", name: "Dumbbell Lateral Raises", target: "2 × 12–15 reps" },
-            { id: "tricep_ext", name: "Overhead KB Triceps Ext", target: "2 × 10–12 reps" }
+            { id: "kb_push_press", name: "KB Push Press (Power Primer)", target: "3 × 5 / side (Snappy)", sets: 3 },
+            { id: "ohp", name: "Standing Barbell OHP", target: "3 × 6–8 reps", sets: 3 },
+            { id: "pushups", name: "Deep Parallette Push-ups", target: "3 × 8–12 reps", sets: 3 },
+            { id: "lateral_raises", name: "Dumbbell Lateral Raises", target: "2 × 12–15 reps", sets: 2 },
+            { id: "tricep_ext", name: "Overhead KB Triceps Ext", target: "2 × 10–12 reps", sets: 2 }
         ],
         PULL: [
-            { id: "high_pulls", name: "1-Arm KB High Pulls (Power)", target: "3 × 5 / side (Fast)" },
-            { id: "chins", name: "Chin-ups / Band Assisted", target: "3 × 5–8 reps" },
-            { id: "pendlay", name: "Barbell Pendlay Row", target: "3 × 6–8 reps" },
-            { id: "rear_delt", name: "Dumbbell Rear-Delt Fly", target: "2 × 12–15 reps" },
-            { id: "curls", name: "Barbell / DB Bicep Curls", target: "2 × 8–12 reps" }
+            { id: "high_pulls", name: "1-Arm KB High Pulls (Power)", target: "3 × 5 / side (Fast)", sets: 3 },
+            { id: "chins", name: "Chin-ups / Band Assisted", target: "3 × 5–8 reps", sets: 3 },
+            { id: "pendlay", name: "Barbell Pendlay Row", target: "3 × 6–8 reps", sets: 3 },
+            { id: "rear_delt", name: "Dumbbell Rear-Delt Fly", target: "2 × 12–15 reps", sets: 2 },
+            { id: "curls", name: "Barbell / DB Bicep Curls", target: "2 × 8–12 reps", sets: 2 }
         ]
     };
 
     let currentTab = "LEGS";
     let trainingLog = JSON.parse(localStorage.getItem('workout_log_cache')) || [];
+    let selectedChartExercise = "squat";
+    let chartInstance = null;
+    let undoTimers = {};
 
-    // --- REALTIME SYNC LISTENER ---
     workoutDbRef.on('value', snapshot => {
         const data = snapshot.val();
-        if (data) {
-            trainingLog = Object.values(data);
-            localStorage.setItem('workout_log_cache', JSON.stringify(trainingLog));
-            renderTabContent();
-            document.getElementById('sync-status').textContent = "☁️ Synced";
-        }
+        trainingLog = data ? Object.values(data) : [];
+        localStorage.setItem('workout_log_cache', JSON.stringify(trainingLog));
+        renderTabContent();
+        document.getElementById('sync-status').textContent = "☁️ Synced";
     });
 
     function switchTab(tab) {
@@ -229,8 +254,45 @@
         renderTabContent();
     }
 
-    function getFormattedToday() {
-        return new Date().toISOString().split('T')[0];
+    function viewExerciseChart(exerciseId) {
+        selectedChartExercise = exerciseId;
+        switchTab('DASH');
+    }
+
+    // Auto-fill weights down to lower sets unless the user overrides them
+    function autoPropagateWeight(exerciseId, setIndex, value) {
+        if (setIndex === 1) {
+            for (let s = 2; s <= 5; s++) {
+                const el = document.getElementById(`w_${exerciseId}_s${s}`);
+                if (el && (!el.value || el.dataset.autoFilled === "true")) {
+                    el.value = value;
+                    el.dataset.autoFilled = "true";
+                }
+            }
+        }
+    }
+
+    function markManualWeight(el) {
+        el.dataset.autoFilled = "false";
+    }
+
+    // Format previous log neatly, supporting variable weights per set
+    function formatPreviousLog(prev) {
+        if (!prev) return "No entries logged yet";
+
+        if (prev.sets && Array.isArray(prev.sets)) {
+            const allSameWeight = prev.sets.every(s => s.w === prev.sets[0].w);
+            if (allSameWeight) {
+                const repsStr = prev.sets.map(s => s.r).join(', ');
+                return `${prev.sets[0].w}kg · [${repsStr}] · RIR ${prev.rir || '-'}`;
+            } else {
+                const breakdown = prev.sets.map(s => `${s.w}k×${s.r}`).join(', ');
+                return `${breakdown} · RIR ${prev.rir || '-'}`;
+            }
+        }
+
+        // Backwards compatibility with single-weight legacy logs
+        return `${prev.weight}kg · [${prev.s1}, ${prev.s2}, ${prev.s3 || '-'}] · RIR ${prev.rir || '-'}`;
     }
 
     function renderTabContent() {
@@ -246,7 +308,7 @@
         header.className = "section-header";
         header.innerHTML = `
             <div class="section-title">${currentTab} SESSION</div>
-            <input type="date" id="session-date" class="session-date-picker" value="${getFormattedToday()}">
+            <input type="date" id="session-date" class="session-date-picker" value="${new Date().toISOString().split('T')[0]}">
         `;
         container.appendChild(header);
 
@@ -256,9 +318,27 @@
 
             const history = trainingLog.filter(item => item.exerciseId === exercise.id);
             const prev = history.length > 0 ? history[history.length - 1] : null;
-            const prevDisplay = prev 
-                ? `${prev.weight}kg · [${prev.s1}, ${prev.s2}, ${prev.s3 || '-'}] · RIR ${prev.rir}`
-                : "No entries logged yet";
+            const prevDisplay = formatPreviousLog(prev);
+
+            const numSets = exercise.sets || 3;
+            let setsHtml = '';
+
+            for (let s = 1; s <= numSets; s++) {
+                let defaultWeight = '';
+                if (prev) {
+                    if (prev.sets && prev.sets[s - 1]) defaultWeight = prev.sets[s - 1].w;
+                    else defaultWeight = prev.weight || '';
+                }
+
+                setsHtml += `
+                    <div class="set-row">
+                        <span class="set-tag">Set ${s}</span>
+                        <input type="number" step="0.5" id="w_${exercise.id}_s${s}" class="num-input" placeholder="${defaultWeight ? defaultWeight + ' kg' : 'kg'}" oninput="autoPropagateWeight('${exercise.id}', ${s}, this.value)" onchange="markManualWeight(this)">
+                        <span class="set-x">×</span>
+                        <input type="number" id="r_${exercise.id}_s${s}" class="num-input" placeholder="reps">
+                    </div>
+                `;
+            }
 
             card.innerHTML = `
                 <div class="card-top">
@@ -267,53 +347,55 @@
                 </div>
 
                 <div class="prev-reference">
-                    <span>Last:</span>
-                    <span class="prev-data">${prevDisplay}</span>
+                    <span>Last: <span class="prev-data">${prevDisplay}</span></span>
+                    <button class="chart-icon-btn" onclick="viewExerciseChart('${exercise.id}')">📈 Chart</button>
                 </div>
 
-                <div class="set-inputs-grid">
-                    <div class="input-group">
-                        <span class="input-label">Weight</span>
-                        <input type="number" step="0.5" id="w_${exercise.id}" class="num-input" placeholder="${prev ? prev.weight : 'kg'}">
-                    </div>
-                    <div class="input-group">
-                        <span class="input-label">Set 1</span>
-                        <input type="number" id="s1_${exercise.id}" class="num-input" placeholder="reps">
-                    </div>
-                    <div class="input-group">
-                        <span class="input-label">Set 2</span>
-                        <input type="number" id="s2_${exercise.id}" class="num-input" placeholder="reps">
-                    </div>
-                    <div class="input-group">
-                        <span class="input-label">Set 3</span>
-                        <input type="number" id="s3_${exercise.id}" class="num-input" placeholder="reps">
-                    </div>
-                    <div class="input-group">
-                        <span class="input-label">RIR</span>
-                        <input type="number" id="rir_${exercise.id}" class="num-input" placeholder="0-3">
-                    </div>
+                <div class="sets-block">
+                    ${setsHtml}
                 </div>
 
-                <div class="card-actions">
-                    <input type="text" id="notes_${exercise.id}" class="notes-input" placeholder="Notes (optional)">
-                    <button class="save-btn" onclick="saveEntry('${exercise.id}')">Log</button>
+                <div class="card-footer-grid">
+                    <input type="number" id="rir_${exercise.id}" class="num-input" placeholder="RIR 0-3">
+                    <input type="text" id="notes_${exercise.id}" class="notes-input" placeholder="Notes (dropped wt on s2, etc.)">
+                    <button id="btn_${exercise.id}" class="save-btn" onclick="handleLogClick('${exercise.id}', ${numSets})">Log</button>
                 </div>
             `;
             container.appendChild(card);
         });
     }
 
-    function saveEntry(exerciseId) {
+    function handleLogClick(exerciseId, numSets) {
+        const btn = document.getElementById(`btn_${exerciseId}`);
+
+        if (btn.classList.contains('undo-active')) {
+            const lastEntryId = btn.dataset.lastEntryId;
+            if (lastEntryId) {
+                workoutDbRef.child(lastEntryId).remove();
+            }
+            clearTimeout(undoTimers[exerciseId]);
+            btn.classList.remove('undo-active');
+            btn.textContent = "Log";
+            return;
+        }
+
         const date = document.getElementById('session-date').value;
-        const weight = parseFloat(document.getElementById(`w_${exerciseId}`).value) || 0;
-        const s1 = parseInt(document.getElementById(`s1_${exerciseId}`).value) || 0;
-        const s2 = parseInt(document.getElementById(`s2_${exerciseId}`).value) || 0;
-        const s3 = parseInt(document.getElementById(`s3_${exerciseId}`).value) || 0;
         const rir = document.getElementById(`rir_${exerciseId}`).value || "-";
         const notes = document.getElementById(`notes_${exerciseId}`).value;
 
-        if (!s1 && !s2 && !weight) {
-            alert("Please input at least weight and reps before logging.");
+        const setsData = [];
+        let topWeight = 0;
+
+        for (let s = 1; s <= numSets; s++) {
+            const w = parseFloat(document.getElementById(`w_${exerciseId}_s${s}`).value) || 0;
+            const r = parseInt(document.getElementById(`r_${exerciseId}_s${s}`).value) || 0;
+            if (w > topWeight) topWeight = w;
+            setsData.push({ set: s, w: w, r: r });
+        }
+
+        const hasAnyData = setsData.some(s => s.r > 0 || s.w > 0);
+        if (!hasAnyData) {
+            alert("Please input at least one set with weight and reps.");
             return;
         }
 
@@ -323,65 +405,95 @@
             date: date,
             day: currentTab,
             exerciseId: exerciseId,
-            weight: weight,
-            s1: s1,
-            s2: s2,
-            s3: s3,
+            weight: topWeight, // Tracks peak top set for chart curves
+            sets: setsData,
             rir: rir,
             notes: notes
         };
 
-        // Writes specifically to /workout_tracker/logs/{logId}
         workoutDbRef.child(logId).set(newLog);
+
+        btn.classList.add('undo-active');
+        btn.dataset.lastEntryId = logId;
+        btn.textContent = "✓ Logged (Undo?)";
+
+        undoTimers[exerciseId] = setTimeout(() => {
+            if (btn) {
+                btn.classList.remove('undo-active');
+                btn.textContent = "Log";
+            }
+        }, 5000);
     }
 
     function renderDashboard(container) {
         const totalWorkouts = new Set(trainingLog.map(i => `${i.date}_${i.day}`)).size;
+        
+        let improvingCount = 0;
+        let evaluatedCount = 0;
+        
+        const allExerciseIds = [];
+        Object.values(ROUTINE).forEach(list => list.forEach(ex => allExerciseIds.push(ex.id)));
+
+        allExerciseIds.forEach(id => {
+            const logs = trainingLog.filter(l => l.exerciseId === id);
+            if (logs.length >= 2) {
+                evaluatedCount++;
+                const firstWeight = logs[0].weight;
+                const lastWeight = logs[logs.length - 1].weight;
+                if (lastWeight > firstWeight) improvingCount++;
+            }
+        });
+
+        const improvingRatio = evaluatedCount > 0 ? `${improvingCount}/${evaluatedCount}` : "0/0";
+
+        let selectOptions = "";
+        Object.keys(ROUTINE).forEach(day => {
+            selectOptions += `<optgroup label="${day}">`;
+            ROUTINE[day].forEach(ex => {
+                const isSelected = ex.id === selectedChartExercise ? 'selected' : '';
+                selectOptions += `<option value="${ex.id}" ${isSelected}>${ex.name}</option>`;
+            });
+            selectOptions += `</optgroup>`;
+        });
 
         container.innerHTML = `
             <div class="section-header">
-                <div class="section-title">PROGRESSION STATS</div>
+                <div class="section-title">STRENGTH PROGRESSION</div>
             </div>
 
             <div class="dash-metric-grid">
                 <div class="dash-metric-card">
+                    <div class="metric-label">Workouts completed</div>
                     <div class="metric-value">${totalWorkouts}</div>
-                    <div class="metric-label">Completed Sessions</div>
+                    <div class="metric-sub">Logged sessions</div>
                 </div>
                 <div class="dash-metric-card">
-                    <div class="metric-value">${trainingLog.length}</div>
-                    <div class="metric-label">Logged Exercises</div>
+                    <div class="metric-label">Exercises improving</div>
+                    <div class="metric-value">${improvingRatio}</div>
+                    <div class="metric-sub">Strength trend positive</div>
                 </div>
             </div>
 
-            <div style="font-size: 0.8rem; font-weight: 700; margin-top: 15px; color: var(--text-secondary);">ESTIMATED STRENGTH PEAKS</div>
-            <div class="history-list" id="peaks-list"></div>
+            <div class="chart-container-box">
+                <div class="chart-selector-header">
+                    <span style="font-size: 0.85rem; font-weight: 600;">Progression Chart</span>
+                    <select id="chart-exercise-dropdown" class="chart-exercise-select" onchange="onChartExerciseChange(this.value)">
+                        ${selectOptions}
+                    </select>
+                </div>
+                <div style="position: relative; height: 260px; width: 100%;">
+                    <canvas id="progressionCanvas"></canvas>
+                </div>
+                <div style="font-size: 0.65rem; color: #555; text-align: center; margin-top: 10px;">
+                    Tracks Top Set peak weight across every session.
+                </div>
+            </div>
 
-            <div style="font-size: 0.8rem; font-weight: 700; margin-top: 15px; color: var(--text-secondary);">RECENT ACTIVITY</div>
+            <div style="font-size: 0.8rem; font-weight: 700; margin-top: 20px; color: var(--text-secondary);">RECENT ACTIVITY</div>
             <div class="history-list" id="recent-list"></div>
         `;
 
-        const trackedLifts = [
-            { id: "squat", name: "Back Squat" },
-            { id: "ohp", name: "Overhead Press" },
-            { id: "pendlay", name: "Pendlay Row" },
-            { id: "rdl", name: "Romanian Deadlift" }
-        ];
-
-        const peaksContainer = document.getElementById('peaks-list');
-        trackedLifts.forEach(lift => {
-            const records = trainingLog.filter(l => l.exerciseId === lift.id);
-            let maxWeight = 0;
-            records.forEach(r => { if (r.weight > maxWeight) maxWeight = r.weight; });
-
-            const row = document.createElement('div');
-            row.className = "history-item";
-            row.innerHTML = `
-                <span>${lift.name}</span>
-                <strong style="color: var(--accent-gold);">${maxWeight > 0 ? maxWeight + ' kg' : '—'}</strong>
-            `;
-            peaksContainer.appendChild(row);
-        });
+        renderChart();
 
         const recentContainer = document.getElementById('recent-list');
         const reversedLog = [...trainingLog].reverse().slice(0, 8);
@@ -390,18 +502,103 @@
             recentContainer.innerHTML = `<div style="color: #444; font-size: 0.75rem;">No workouts completed yet.</div>`;
         } else {
             reversedLog.forEach(item => {
+                const summary = formatPreviousLog(item);
                 const row = document.createElement('div');
                 row.className = "history-item";
                 row.innerHTML = `
                     <div>
-                        <div style="font-weight: 600;">${item.exerciseId.toUpperCase()} · ${item.weight}kg</div>
-                        <div style="color: #666; font-size: 0.65rem;">${item.date} · Reps: ${item.s1}/${item.s2}/${item.s3} (RIR ${item.rir})</div>
+                        <div style="font-weight: 600;">${item.exerciseId.toUpperCase()}</div>
+                        <div style="color: #888; font-size: 0.65rem;">${item.date} · ${summary}</div>
                     </div>
-                    <button style="background:transparent; border:none; color: var(--danger); cursor:pointer;" onclick="deleteEntry('${item.id}')">✕</button>
+                    <button style="background:transparent; border:none; color: var(--danger); cursor:pointer; font-weight: bold;" onclick="deleteEntry('${item.id}')">✕</button>
                 `;
                 recentContainer.appendChild(row);
             });
         }
+    }
+
+    function onChartExerciseChange(newId) {
+        selectedChartExercise = newId;
+        renderChart();
+    }
+
+    function renderChart() {
+        const canvas = document.getElementById('progressionCanvas');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        if (chartInstance) chartInstance.destroy();
+
+        const exerciseLogs = trainingLog
+            .filter(l => l.exerciseId === selectedChartExercise)
+            .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        const labels = exerciseLogs.map((l, idx) => {
+            const parts = l.date.split('-');
+            if (parts.length === 3) {
+                return `S${idx + 1} (${parts[1]}/${parts[2]})`;
+            }
+            return `S${idx + 1}`;
+        });
+        const dataPoints = exerciseLogs.map(l => l.weight);
+
+        const displayLabels = labels.length > 0 ? labels : ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'];
+        const displayData = dataPoints.length > 0 ? dataPoints : [0, 0, 0, 0, 0];
+
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: displayLabels,
+                datasets: [{
+                    label: 'Top Set (kg)',
+                    data: displayData,
+                    borderColor: '#5dade2',
+                    backgroundColor: 'rgba(93, 173, 226, 0.12)',
+                    pointBackgroundColor: '#aed6f1',
+                    pointBorderColor: '#1b4f72',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    tension: 0.25,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1b1b1b',
+                        titleColor: '#ffffff',
+                        bodyColor: '#5dade2',
+                        borderColor: '#333333',
+                        borderWidth: 1,
+                        padding: 10,
+                        callbacks: {
+                            label: (context) => `Top Set: ${context.parsed.y} kg`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#777777', font: { size: 10 } }
+                    },
+                    y: {
+                        grid: { 
+                            color: 'rgba(255, 255, 255, 0.08)',
+                            borderDash: [4, 4] 
+                        },
+                        ticks: { 
+                            color: '#777777', 
+                            font: { size: 10 },
+                            callback: (val) => `${val} kg`
+                        }
+                    }
+                }
+            }
+        });
     }
 
     function deleteEntry(id) {
