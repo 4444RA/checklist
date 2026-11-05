@@ -27,19 +27,6 @@
             display: flex; flex-direction: column; align-items: center; min-height: 100vh;
         }
 
-        #lock-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-color); z-index: 10000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.3s ease;
-        }
-        .lock-input {
-            background: #111; border: 1px solid #333; color: white;
-            padding: 15px; border-radius: 8px; text-align: center;
-            font-size: 1.5rem; outline: none; width: 140px; letter-spacing: 5px;
-        }
-        .hidden { display: none !important; }
-
         .app-container {
             width: 100%; max-width: 540px; padding: 16px 14px 100px 14px;
             display: flex; flex-direction: column; gap: 16px;
@@ -85,7 +72,7 @@
             cursor: pointer; font-size: 0.75rem; padding: 2px 4px; font-weight: 600;
         }
 
-        /* Per-Set Dynamic Input Grid */
+        /* Per-Set Input Grid */
         .sets-block {
             display: flex; flex-direction: column; gap: 6px; background: #0c0c0c;
             padding: 8px 10px; border-radius: 8px; border: 1px solid #1a1a1a;
@@ -123,8 +110,8 @@
             to { background-color: #219653; }
         }
 
-        /* Dashboard Styles */
-        .dash-metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        /* Dashboard & Charts */
+        .dash-metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
         .dash-metric-card {
             background: var(--surface-color); border: 1px solid var(--surface-border);
             padding: 16px 14px; border-radius: 10px; text-align: left;
@@ -133,17 +120,37 @@
         .metric-value { font-size: 2.2rem; font-weight: 300; margin: 0; line-height: 1; color: #ffffff; }
         .metric-sub { font-size: 0.65rem; color: #555; margin-top: 6px; }
 
-        .chart-container-box {
+        /* Filter Controls */
+        .chart-filter-bar {
+            display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 12px;
+        }
+        .filter-pill {
+            background: #181818; border: 1px solid #2a2a2a; color: var(--text-secondary);
+            font-size: 0.7rem; font-weight: 700; padding: 6px 12px; border-radius: 20px;
+            cursor: pointer; transition: 0.2s;
+        }
+        .filter-pill.active {
+            background: var(--accent-blue); color: #000; border-color: var(--accent-blue);
+        }
+        .chart-select-inline {
+            background: #121212; border: 1px solid #333; color: #ddd;
+            font-size: 0.7rem; padding: 5px 8px; border-radius: 6px; outline: none; margin-left: auto;
+        }
+
+        /* Stacked Chart Card */
+        .stacked-charts-wrapper {
+            display: flex; flex-direction: column; gap: 14px;
+        }
+        .chart-card-stacked {
             background: var(--surface-color); border: 1px solid var(--surface-border);
-            border-radius: 10px; padding: 16px; margin-top: 10px;
+            border-radius: 10px; padding: 14px 14px 10px 14px;
         }
-        .chart-selector-header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+        .chart-card-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
         }
-        .chart-exercise-select {
-            background: #090909; color: #fff; border: 1px solid #333;
-            border-radius: 6px; padding: 6px 10px; font-size: 0.8rem; outline: none;
-        }
+        .chart-card-title { font-size: 0.85rem; font-weight: 600; color: #f0f0f0; }
+        .chart-card-pr { font-size: 0.75rem; font-weight: 700; color: var(--accent-gold); font-family: monospace; }
+        .chart-canvas-box { position: relative; height: 180px; width: 100%; }
 
         .history-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
         .history-item {
@@ -159,11 +166,7 @@
 </head>
 <body>
 
-<div id="lock-screen">
-    <input type="password" id="pass-input" class="lock-input" placeholder="•" autofocus oninput="checkPass(this.value)">
-</div>
-
-<div id="app-container" class="hidden app-container">
+<div id="app-container" class="app-container">
     <div style="display:flex; justify-content:space-between; align-items:center;">
         <span style="font-size:0.75rem; font-weight:700; letter-spacing:0.05em; color:var(--text-secondary);">STRENGTH PROGRESSION</span>
         <span id="sync-status" class="cloud-badge">☁️ Connected</span>
@@ -198,17 +201,6 @@
     const database = firebase.database();
     const workoutDbRef = database.ref('workout_tracker/logs');
 
-    function checkPass(val) {
-        if (val === "2") {
-            const ls = document.getElementById('lock-screen');
-            ls.style.opacity = '0';
-            setTimeout(() => {
-                ls.classList.add('hidden');
-                document.getElementById('app-container').classList.remove('hidden');
-            }, 300);
-        }
-    }
-
     const ROUTINE = {
         LEGS: [
             { id: "squat", name: "Barbell Back Squat", target: "3 × 6–8 reps", sets: 3 },
@@ -234,16 +226,25 @@
 
     let currentTab = "LEGS";
     let trainingLog = JSON.parse(localStorage.getItem('workout_log_cache')) || [];
-    let selectedChartExercise = "squat";
-    let chartInstance = null;
+    let chartViewMode = "LEGS";
+    let activeChartInstances = [];
     let undoTimers = {};
 
     workoutDbRef.on('value', snapshot => {
-        const data = snapshot.val();
-        trainingLog = data ? Object.values(data) : [];
+        const logs = [];
+        snapshot.forEach(child => {
+            logs.push({
+                ...child.val(),
+                id: child.key
+            });
+        });
+        trainingLog = logs;
         localStorage.setItem('workout_log_cache', JSON.stringify(trainingLog));
         renderTabContent();
         document.getElementById('sync-status').textContent = "☁️ Synced";
+    }, error => {
+        console.error("Firebase read error:", error);
+        document.getElementById('sync-status').textContent = "⚠️ Permission Denied";
     });
 
     function switchTab(tab) {
@@ -255,11 +256,10 @@
     }
 
     function viewExerciseChart(exerciseId) {
-        selectedChartExercise = exerciseId;
+        chartViewMode = exerciseId;
         switchTab('DASH');
     }
 
-    // Auto-fill weights down to lower sets unless the user overrides them
     function autoPropagateWeight(exerciseId, setIndex, value) {
         if (setIndex === 1) {
             for (let s = 2; s <= 5; s++) {
@@ -276,10 +276,8 @@
         el.dataset.autoFilled = "false";
     }
 
-    // Format previous log neatly, supporting variable weights per set
     function formatPreviousLog(prev) {
         if (!prev) return "No entries logged yet";
-
         if (prev.sets && Array.isArray(prev.sets)) {
             const allSameWeight = prev.sets.every(s => s.w === prev.sets[0].w);
             if (allSameWeight) {
@@ -290,8 +288,6 @@
                 return `${breakdown} · RIR ${prev.rir || '-'}`;
             }
         }
-
-        // Backwards compatibility with single-weight legacy logs
         return `${prev.weight}kg · [${prev.s1}, ${prev.s2}, ${prev.s3 || '-'}] · RIR ${prev.rir || '-'}`;
     }
 
@@ -357,7 +353,7 @@
 
                 <div class="card-footer-grid">
                     <input type="number" id="rir_${exercise.id}" class="num-input" placeholder="RIR 0-3">
-                    <input type="text" id="notes_${exercise.id}" class="notes-input" placeholder="Notes (dropped wt on s2, etc.)">
+                    <input type="text" id="notes_${exercise.id}" class="notes-input" placeholder="Notes">
                     <button id="btn_${exercise.id}" class="save-btn" onclick="handleLogClick('${exercise.id}', ${numSets})">Log</button>
                 </div>
             `;
@@ -371,7 +367,7 @@
         if (btn.classList.contains('undo-active')) {
             const lastEntryId = btn.dataset.lastEntryId;
             if (lastEntryId) {
-                workoutDbRef.child(lastEntryId).remove();
+                deleteEntry(lastEntryId, false);
             }
             clearTimeout(undoTimers[exerciseId]);
             btn.classList.remove('undo-active');
@@ -405,7 +401,7 @@
             date: date,
             day: currentTab,
             exerciseId: exerciseId,
-            weight: topWeight, // Tracks peak top set for chart curves
+            weight: topWeight,
             sets: setsData,
             rir: rir,
             notes: notes
@@ -446,14 +442,50 @@
 
         const improvingRatio = evaluatedCount > 0 ? `${improvingCount}/${evaluatedCount}` : "0/0";
 
-        let selectOptions = "";
+        let exercisesToRender = [];
+        if (chartViewMode === "LEGS") {
+            exercisesToRender = ROUTINE.LEGS;
+        } else if (chartViewMode === "PUSH") {
+            exercisesToRender = ROUTINE.PUSH;
+        } else if (chartViewMode === "PULL") {
+            exercisesToRender = ROUTINE.PULL;
+        } else if (chartViewMode === "ALL") {
+            exercisesToRender = [...ROUTINE.LEGS, ...ROUTINE.PUSH, ...ROUTINE.PULL];
+        } else {
+            Object.values(ROUTINE).forEach(dayList => {
+                const match = dayList.find(e => e.id === chartViewMode);
+                if (match) exercisesToRender = [match];
+            });
+            if (exercisesToRender.length === 0) exercisesToRender = ROUTINE.LEGS;
+        }
+
+        let selectOptions = `<option value="" disabled ${!["LEGS","PUSH","PULL","ALL"].includes(chartViewMode) ? '' : 'selected'}>Pick Individual Lift...</option>`;
         Object.keys(ROUTINE).forEach(day => {
             selectOptions += `<optgroup label="${day}">`;
             ROUTINE[day].forEach(ex => {
-                const isSelected = ex.id === selectedChartExercise ? 'selected' : '';
+                const isSelected = ex.id === chartViewMode ? 'selected' : '';
                 selectOptions += `<option value="${ex.id}" ${isSelected}>${ex.name}</option>`;
             });
             selectOptions += `</optgroup>`;
+        });
+
+        let chartsCardsHtml = "";
+        exercisesToRender.forEach(ex => {
+            const exLogs = trainingLog.filter(l => l.exerciseId === ex.id);
+            let peak = 0;
+            exLogs.forEach(l => { if (l.weight > peak) peak = l.weight; });
+
+            chartsCardsHtml += `
+                <div class="chart-card-stacked">
+                    <div class="chart-card-header">
+                        <span class="chart-card-title">${ex.name}</span>
+                        <span class="chart-card-pr">${peak > 0 ? 'Peak: ' + peak + ' kg' : 'No logs yet'}</span>
+                    </div>
+                    <div class="chart-canvas-box">
+                        <canvas id="canvas_${ex.id}"></canvas>
+                    </div>
+                </div>
+            `;
         });
 
         container.innerHTML = `
@@ -474,26 +506,25 @@
                 </div>
             </div>
 
-            <div class="chart-container-box">
-                <div class="chart-selector-header">
-                    <span style="font-size: 0.85rem; font-weight: 600;">Progression Chart</span>
-                    <select id="chart-exercise-dropdown" class="chart-exercise-select" onchange="onChartExerciseChange(this.value)">
-                        ${selectOptions}
-                    </select>
-                </div>
-                <div style="position: relative; height: 260px; width: 100%;">
-                    <canvas id="progressionCanvas"></canvas>
-                </div>
-                <div style="font-size: 0.65rem; color: #555; text-align: center; margin-top: 10px;">
-                    Tracks Top Set peak weight across every session.
-                </div>
+            <div class="chart-filter-bar">
+                <button class="filter-pill ${chartViewMode === 'LEGS' ? 'active' : ''}" onclick="setChartFilter('LEGS')">LEGS</button>
+                <button class="filter-pill ${chartViewMode === 'PUSH' ? 'active' : ''}" onclick="setChartFilter('PUSH')">PUSH</button>
+                <button class="filter-pill ${chartViewMode === 'PULL' ? 'active' : ''}" onclick="setChartFilter('PULL')">PULL</button>
+                <button class="filter-pill ${chartViewMode === 'ALL' ? 'active' : ''}" onclick="setChartFilter('ALL')">ALL</button>
+                <select class="chart-select-inline" onchange="setChartFilter(this.value)">
+                    ${selectOptions}
+                </select>
             </div>
 
-            <div style="font-size: 0.8rem; font-weight: 700; margin-top: 20px; color: var(--text-secondary);">RECENT ACTIVITY</div>
+            <div class="stacked-charts-wrapper">
+                ${chartsCardsHtml}
+            </div>
+
+            <div style="font-size: 0.8rem; font-weight: 700; margin-top: 25px; color: var(--text-secondary);">RECENT ACTIVITY</div>
             <div class="history-list" id="recent-list"></div>
         `;
 
-        renderChart();
+        renderAllStackedCharts(exercisesToRender);
 
         const recentContainer = document.getElementById('recent-list');
         const reversedLog = [...trainingLog].reverse().slice(0, 8);
@@ -517,93 +548,107 @@
         }
     }
 
-    function onChartExerciseChange(newId) {
-        selectedChartExercise = newId;
-        renderChart();
+    function setChartFilter(mode) {
+        chartViewMode = mode;
+        renderDashboard(document.getElementById('tab-content'));
     }
 
-    function renderChart() {
-        const canvas = document.getElementById('progressionCanvas');
-        if (!canvas) return;
+    function renderAllStackedCharts(exercises) {
+        activeChartInstances.forEach(inst => inst.destroy());
+        activeChartInstances = [];
 
-        const ctx = canvas.getContext('2d');
-        if (chartInstance) chartInstance.destroy();
+        exercises.forEach(ex => {
+            const canvas = document.getElementById(`canvas_${ex.id}`);
+            if (!canvas) return;
 
-        const exerciseLogs = trainingLog
-            .filter(l => l.exerciseId === selectedChartExercise)
-            .sort((a, b) => new Date(a.date) - new Date(b.date));
+            const ctx = canvas.getContext('2d');
+            const exLogs = trainingLog
+                .filter(l => l.exerciseId === ex.id)
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        const labels = exerciseLogs.map((l, idx) => {
-            const parts = l.date.split('-');
-            if (parts.length === 3) {
-                return `S${idx + 1} (${parts[1]}/${parts[2]})`;
-            }
-            return `S${idx + 1}`;
-        });
-        const dataPoints = exerciseLogs.map(l => l.weight);
+            const labels = exLogs.map((l, idx) => {
+                const parts = l.date.split('-');
+                if (parts.length === 3) return `S${idx + 1} (${parts[1]}/${parts[2]})`;
+                return `S${idx + 1}`;
+            });
+            const dataPoints = exLogs.map(l => l.weight);
 
-        const displayLabels = labels.length > 0 ? labels : ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'];
-        const displayData = dataPoints.length > 0 ? dataPoints : [0, 0, 0, 0, 0];
+            const displayLabels = labels.length > 0 ? labels : ['S1', 'S2', 'S3', 'S4'];
+            const displayData = dataPoints.length > 0 ? dataPoints : [0, 0, 0, 0];
 
-        chartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: displayLabels,
-                datasets: [{
-                    label: 'Top Set (kg)',
-                    data: displayData,
-                    borderColor: '#5dade2',
-                    backgroundColor: 'rgba(93, 173, 226, 0.12)',
-                    pointBackgroundColor: '#aed6f1',
-                    pointBorderColor: '#1b4f72',
-                    pointBorderWidth: 2,
-                    pointRadius: 6,
-                    pointHoverRadius: 8,
-                    tension: 0.25,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#1b1b1b',
-                        titleColor: '#ffffff',
-                        bodyColor: '#5dade2',
-                        borderColor: '#333333',
-                        borderWidth: 1,
-                        padding: 10,
-                        callbacks: {
-                            label: (context) => `Top Set: ${context.parsed.y} kg`
-                        }
-                    }
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: displayLabels,
+                    datasets: [{
+                        label: 'Top Set (kg)',
+                        data: displayData,
+                        borderColor: '#5dade2',
+                        backgroundColor: 'rgba(93, 173, 226, 0.12)',
+                        pointBackgroundColor: '#aed6f1',
+                        pointBorderColor: '#1b4f72',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        tension: 0.25,
+                        fill: true
+                    }]
                 },
-                scales: {
-                    x: {
-                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                        ticks: { color: '#777777', font: { size: 10 } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1b1b1b',
+                            titleColor: '#ffffff',
+                            bodyColor: '#5dade2',
+                            borderColor: '#333333',
+                            borderWidth: 1,
+                            padding: 8,
+                            callbacks: {
+                                label: (context) => `Top Set: ${context.parsed.y} kg`
+                            }
+                        }
                     },
-                    y: {
-                        grid: { 
-                            color: 'rgba(255, 255, 255, 0.08)',
-                            borderDash: [4, 4] 
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#666', font: { size: 9 } }
                         },
-                        ticks: { 
-                            color: '#777777', 
-                            font: { size: 10 },
-                            callback: (val) => `${val} kg`
+                        y: {
+                            grid: { 
+                                color: 'rgba(255, 255, 255, 0.08)',
+                                borderDash: [4, 4] 
+                            },
+                            ticks: { 
+                                color: '#666', 
+                                font: { size: 9 },
+                                callback: (val) => `${val} kg`
+                            }
                         }
                     }
                 }
-            }
+            });
+
+            activeChartInstances.push(chart);
         });
     }
 
-    function deleteEntry(id) {
-        if (confirm("Delete this log entry?")) {
-            workoutDbRef.child(id).remove();
+    function deleteEntry(id, showConfirm = true) {
+        if (showConfirm && !confirm("Delete this log entry?")) return;
+
+        trainingLog = trainingLog.filter(item => String(item.id) !== String(id));
+        localStorage.setItem('workout_log_cache', JSON.stringify(trainingLog));
+        renderTabContent();
+
+        if (id && id !== 'undefined') {
+            workoutDbRef.child(id).remove().then(() => {
+                document.getElementById('sync-status').textContent = "☁️ Synced";
+            }).catch(err => {
+                console.error("Firebase delete error:", err);
+                alert("Firebase delete warning: " + err.message);
+            });
         }
     }
 
@@ -611,4 +656,3 @@
 </script>
 </body>
 </html>
-
