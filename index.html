@@ -1,308 +1,416 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="background-color: #0a0a0a; color-scheme: dark;">
 <head>
+    <meta name="color-scheme" content="dark">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Daily Focus Journal</title>
+    <meta name="theme-color" content="#0a0a0a">
+    <title>LPP Power & Hypertrophy Tracker</title>
     <style>
         :root {
+            color-scheme: dark;
             --bg-color: #0a0a0a;
-            --text-primary: #ffffff;
-            --text-secondary: #888888;
-            --box-border: #222;
-            --bar-track: #1a1a1a;
-            --bar-fill: #ffffff;
-            --color-meditate: #4a90e2;
-            --color-yoga: #a370f7;
-            --color-workout: #f1c40f;
-            --color-walk: #2ecc71;
-            --color-ride: #ff7675;
-            --color-stretch: #00cec9;
+            --surface-color: #141414;
+            --surface-border: #222222;
+            --text-primary: #f0f0f0;
+            --text-secondary: #777777;
+            --accent-gold: #f1c40f;
+            --accent-green: #2ecc71;
+            --danger: #e74c3c;
         }
 
-        /* Password Lock Styles */
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+        body { 
+            margin: 0; background-color: var(--bg-color); color: var(--text-primary); 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+        }
+
         #lock-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-color); z-index: 10000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.3s ease;
         }
         .lock-input {
             background: #111; border: 1px solid #333; color: white;
             padding: 15px; border-radius: 8px; text-align: center;
-            font-size: 1.5rem; outline: none; width: 150px;
-            font-family: inherit; letter-spacing: 5px;
+            font-size: 1.5rem; outline: none; width: 140px; letter-spacing: 5px;
         }
-        .lock-input:focus { border-color: #666; }
-        .hidden-app { display: none !important; }
+        .hidden { display: none !important; }
 
-        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
-        body { 
-            margin: 0; background-color: var(--bg-color); 
-            color: var(--text-primary); font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif; 
-            display: flex; flex-direction: column; align-items: center; min-height: 100vh; cursor: default;
+        .app-container {
+            width: 100%; max-width: 520px; padding: 16px 14px 100px 14px;
+            display: flex; flex-direction: column; gap: 16px;
         }
 
-        .main-content {
-            width: 100%; max-width: 480px; padding: 60px 24px 100px 24px;
-            display: flex; flex-direction: column; gap: 30px;
+        .tabs-nav {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+            background: var(--surface-color); padding: 4px; border-radius: 10px;
+            border: 1px solid var(--surface-border); position: sticky; top: 10px; z-index: 50;
+        }
+        .tab-btn {
+            background: transparent; border: none; color: var(--text-secondary);
+            padding: 9px 0; border-radius: 7px; font-weight: 700; font-size: 0.75rem;
+            cursor: pointer; text-align: center; transition: 0.2s;
+        }
+        .tab-btn.active { background: #262626; color: #fff; }
+
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 8px; border-bottom: 1px solid var(--surface-border);
+        }
+        .section-title { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; }
+        .session-date-picker {
+            background: transparent; border: 1px solid var(--surface-border);
+            color: var(--text-secondary); font-size: 0.8rem; border-radius: 6px; padding: 4px 8px;
         }
 
-        /* Year Progress */
-        .progress-section { text-align: center; }
-        .percentage-display { font-size: 4rem; font-weight: 200; margin: 0; line-height: 1; letter-spacing: -2px; }
-        .progress-container { width: 100%; height: 2px; background: var(--bar-track); border-radius: 1px; margin: 1.5rem 0; overflow: hidden; }
-        .progress-fill { height: 100%; width: 0%; background: var(--bar-fill); transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1); }
-
-        /* Date Navigator */
-        .date-nav {
-            display: flex; align-items: center; justify-content: space-between;
-            padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);
+        .card {
+            background: var(--surface-color); border: 1px solid var(--surface-border);
+            border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px;
         }
-        .date-display { font-size: 1.1rem; font-weight: 300; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; }
-        .nav-btn { 
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
-            color: #fff; padding: 6px 16px; border-radius: 6px; cursor: pointer; transition: 0.2s; 
-        }
-        .nav-btn:hover { background: rgba(255,255,255,0.1); }
-        .nav-btn:active { transform: scale(0.95); }
-
-        /* Inputs */
-        .wake-section { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; }
-        .wake-label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.1em; }
-        .wake-input { 
-            background: transparent; border: none; color: #fff; font-size: 1.5rem; font-weight: 300; 
-            text-align: right; width: 140px; outline: none; font-family: inherit; 
-        }
-
-        .habits-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 10px 0; }
+        .card-top { display: flex; justify-content: space-between; align-items: baseline; }
+        .exercise-name { font-size: 0.95rem; font-weight: 600; margin: 0; }
+        .exercise-target { font-size: 0.7rem; color: var(--accent-gold); text-transform: uppercase; font-weight: 600; }
         
-        .habit-item { display: flex; align-items: center; font-size: 1rem; cursor: pointer; color: #ccc; }
-        .habit-item input { display: none; }
-        .custom-checkbox { 
-            width: 24px; height: 24px; border: 1px solid rgba(255, 255, 255, 0.25); 
-            border-radius: 6px; margin-right: 12px; position: relative; 
-            background: rgba(0, 0, 0, 0.3); flex-shrink: 0; transition: 0.2s;
+        .prev-reference {
+            background: #090909; border-radius: 6px; padding: 6px 10px;
+            font-size: 0.75rem; color: var(--text-secondary); display: flex; justify-content: space-between;
         }
-        .habit-item input:checked + .custom-checkbox::after { 
-            content: ''; position: absolute; left: 8px; top: 4px; width: 5px; height: 10px; 
-            border: solid #000; border-width: 0 2px 2px 0; transform: rotate(45deg); 
+        .prev-data { color: #aaa; font-family: monospace; font-size: 0.8rem; }
+
+        .set-inputs-grid {
+            display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 6px;
+        }
+        .input-group { display: flex; flex-direction: column; gap: 3px; }
+        .input-label { font-size: 0.6rem; text-transform: uppercase; color: var(--text-secondary); text-align: center; }
+        .num-input {
+            width: 100%; background: #080808; border: 1px solid #2a2a2a; border-radius: 6px;
+            color: #fff; padding: 8px 0; text-align: center; font-size: 0.95rem; font-weight: 600;
+            outline: none;
+        }
+        .num-input:focus { border-color: #666; }
+
+        .card-actions { display: flex; gap: 8px; align-items: center; }
+        .notes-input {
+            flex-grow: 1; background: #080808; border: 1px solid #222; border-radius: 6px;
+            color: #bbb; padding: 8px 10px; font-size: 0.75rem; outline: none;
+        }
+        .save-btn {
+            background: #ffffff; color: #000; border: none; font-weight: 700;
+            font-size: 0.75rem; padding: 8px 14px; border-radius: 6px; cursor: pointer;
         }
 
-        /* Habit Specific Colors */
-        .habit-item input[data-habit="0"]:checked + .custom-checkbox { background: var(--color-meditate); border-color: var(--color-meditate); }
-        .habit-item input[data-habit="1"]:checked + .custom-checkbox { background: var(--color-yoga); border-color: var(--color-yoga); }
-        .habit-item input[data-habit="2"]:checked + .custom-checkbox { background: var(--color-workout); border-color: var(--color-workout); }
-        .habit-item input[data-habit="3"]:checked + .custom-checkbox { background: var(--color-walk); border-color: var(--color-walk); }
-        .habit-item input[data-habit="4"]:checked + .custom-checkbox { background: var(--color-ride); border-color: var(--color-ride); }
-        .habit-item input[data-habit="5"]:checked + .custom-checkbox { background: var(--color-stretch); border-color: var(--color-stretch); }
+        .dash-metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .dash-metric-card {
+            background: var(--surface-color); border: 1px solid var(--surface-border);
+            padding: 14px; border-radius: 10px; text-align: center;
+        }
+        .metric-value { font-size: 2rem; font-weight: 200; margin: 2px 0; }
+        .metric-label { font-size: 0.65rem; text-transform: uppercase; color: var(--text-secondary); }
 
-        textarea { 
-            width: 100%; height: 200px; background: rgba(255, 255, 255, 0.03); 
-            border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; 
-            color: #eee; padding: 20px; resize: none; font-family: inherit; 
-            margin-top: 15px; line-height: 1.6; font-size: 1rem; outline: none; 
-            transition: border-color 0.3s;
+        .history-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+        .history-item {
+            background: var(--surface-color); border: 1px solid var(--surface-border);
+            border-radius: 8px; padding: 10px 12px; font-size: 0.75rem;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        textarea:focus { border-color: rgba(255,255,255,0.3); }
 
-        /* Footer / Actions - Moved to Bottom Right */
-        .actions-row { 
-            position: fixed; 
-            bottom: 20px; 
-            right: 20px; 
-            display: flex; 
-            gap: 8px; 
-            z-index: 100;
+        .cloud-badge {
+            font-size: 0.65rem; color: var(--accent-green); display: flex;
+            align-items: center; gap: 4px; font-weight: 600;
         }
-        .action-btn { 
-            background: rgba(10, 10, 10, 0.8);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.1); 
-            color: var(--text-secondary); 
-            padding: 6px 10px; 
-            font-size: 0.55rem; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            text-transform: uppercase; 
-            letter-spacing: 0.1em;
-            transition: 0.2s;
-        }
-        .action-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
     </style>
 </head>
 <body>
 
-<!-- Password Overlay -->
+<!-- Unlock screen (Pin: 2) -->
 <div id="lock-screen">
     <input type="password" id="pass-input" class="lock-input" placeholder="•" autofocus oninput="checkPass(this.value)">
 </div>
 
-<div id="app-container" class="hidden-app main-content">
-    
-    <div class="progress-section">
-        <h1 class="percentage-display"><span id="percentage">0</span><span>%</span></h1>
-        <div class="progress-container"><div class="progress-fill" id="progress-fill"></div></div>
+<div id="app-container" class="hidden app-container">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:0.75rem; font-weight:700; letter-spacing:0.05em; color:var(--text-secondary);">POWER & HYPERTROPHY</span>
+        <span id="sync-status" class="cloud-badge">☁️ Connected</span>
     </div>
 
-    <div class="date-nav">
-        <button class="nav-btn" onclick="changeDay(-1)">←</button>
-        <div id="date-display" class="date-display">Date</div>
-        <button class="nav-btn" onclick="changeDay(1)">→</button>
-    </div>
+    <!-- Navigation -->
+    <nav class="tabs-nav">
+        <button class="tab-btn active" onclick="switchTab('LEGS')">LEGS</button>
+        <button class="tab-btn" onclick="switchTab('PUSH')">PUSH</button>
+        <button class="tab-btn" onclick="switchTab('PULL')">PULL</button>
+        <button class="tab-btn" onclick="switchTab('DASH')">STATS</button>
+    </nav>
 
-    <div class="wake-section">
-        <span class="wake-label">Wake Up</span>
-        <input type="text" id="wake-time" class="wake-input" placeholder="--:-- AM">
-    </div>
-
-    <div class="habits-grid">
-        <label class="habit-item"><input type="checkbox" class="habit-cb" data-habit="0"><span class="custom-checkbox"></span>Meditate</label>
-        <label class="habit-item"><input type="checkbox" class="habit-cb" data-habit="1"><span class="custom-checkbox"></span>Yoga</label>
-        <label class="habit-item"><input type="checkbox" class="habit-cb" data-habit="2"><span class="custom-checkbox"></span>Workout</label>
-        <label class="habit-item"><input type="checkbox" class="habit-cb" data-habit="3"><span class="custom-checkbox"></span>Walk</label>
-        <label class="habit-item"><input type="checkbox" class="habit-cb" data-habit="4"><span class="custom-checkbox"></span>Ride</label>
-        <label class="habit-item"><input type="checkbox" class="habit-cb" data-habit="5"><span class="custom-checkbox"></span>Stretch</label>
-    </div>
-
-    <textarea id="journal-text" placeholder=""></textarea>
+    <!-- Content Area -->
+    <div id="tab-content"></div>
 </div>
 
-<!-- Floating Action Buttons -->
-<div class="actions-row">
-    <button class="action-btn" onclick="saveDataFile()">Export Data</button>
-    <button class="action-btn" onclick="document.getElementById('load-input').click()">Import Data</button>
-    <input type="file" id="load-input" style="display:none" onchange="loadDataFile(event)">
-</div>
+<!-- Firebase SDK (Uses identical version to your trading tracker) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
-    // --- PASSWORD LOGIC ---
+    // --- FIREBASE CONFIG (Connected to journal-a003f) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyCQ4vHqGiv_yRkA0zZaaOU24gxhqBkxnv4",
+        authDomain: "journal-a003f.firebaseapp.com",
+        databaseURL: "https://journal-a003f-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "journal-a003f",
+        storageBucket: "journal-a003f.firebasestorage.app",
+        messagingSenderId: "1038636626553",
+        appId: "1:1038636626553:web:7a91c321e39c146bdc9aa8"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // STRICT NAMESPACE: Everything in this tracker is isolated in /workout_tracker
+    // It will NEVER touch /trades, /ts_trades, /completed_trades, etc.
+    const workoutDbRef = database.ref('workout_tracker/logs');
+
+    // --- PIN LOCK ---
     function checkPass(val) {
         if (val === "2") {
-            document.getElementById('lock-screen').style.opacity = '0';
+            const ls = document.getElementById('lock-screen');
+            ls.style.opacity = '0';
             setTimeout(() => {
-                document.getElementById('lock-screen').style.display = 'none';
-                document.getElementById('app-container').classList.remove('hidden-app');
-            }, 500);
+                ls.classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
+            }, 300);
         }
     }
 
-    // --- APP LOGIC ---
-    let viewedDate = getPerthTime();
-
-    // Gets current time locked to Perth timezone
-    function getPerthTime() {
-        const now = new Date();
-        const formatter = new Intl.DateTimeFormat('en-US', { timeZone: 'Australia/Perth', year: 'numeric', month: 'numeric', day: 'numeric' });
-        const parts = formatter.formatToParts(now);
-        const d = {}; parts.forEach(p => d[p.type] = p.value);
-        return new Date(d.year, d.month - 1, d.day);
-    }
-
-    // Gets standard "YYYY-M-D" key used for storage
-    function getDateKey(dateObj) {
-        return `${dateObj.getFullYear()}-${dateObj.getMonth()}-${dateObj.getDate()}`;
-    }
-
-    // Changes viewed day by offset
-    function changeDay(offset) {
-        viewedDate.setDate(viewedDate.getDate() + offset);
-        loadDayData();
-    }
-
-    // Loads the data for the currently viewed date
-    function loadDayData() {
-        // Update Title Date
-        const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
-        document.getElementById('date-display').innerText = viewedDate.toLocaleDateString('en-US', options);
-
-        // Update Progress Bar based on viewed date
-        const start = new Date(viewedDate.getFullYear(), 0, 1);
-        const end = new Date(viewedDate.getFullYear() + 1, 0, 1);
-        const percent = (((viewedDate - start) / (end - start)) * 100).toFixed(1);
-        document.getElementById('percentage').innerText = percent;
-        setTimeout(() => { document.getElementById('progress-fill').style.width = percent + '%'; }, 100);
-
-        // Fetch Data from LocalStorage
-        const key = getDateKey(viewedDate);
-        const data = JSON.parse(localStorage.getItem(key)) || { text: "", habits: [false,false,false,false,false,false], wake: "" };
-        
-        // Populate Inputs
-        document.getElementById('wake-time').value = data.wake || "";
-        document.getElementById('journal-text').value = data.text || "";
-        
-        const checkboxes = document.querySelectorAll('.habit-cb');
-        checkboxes.forEach((cb) => {
-            const index = parseInt(cb.getAttribute('data-habit'));
-            cb.checked = data.habits ? !!data.habits[index] : false;
-        });
-    }
-
-    // Saves the currently viewed data to LocalStorage
-    function saveDayData() {
-        const key = getDateKey(viewedDate);
-        
-        const text = document.getElementById('journal-text').value;
-        const wake = document.getElementById('wake-time').value;
-        
-        const checkboxes = document.querySelectorAll('.habit-cb');
-        const habits = Array.from(checkboxes).map(cb => cb.checked);
-
-        localStorage.setItem(key, JSON.stringify({ text, habits, wake }));
-    }
-
-    // Formats the wake time cleanly on blur
-    function formatWakeTime(v) {
-        let c = v.replace(/[^0-9]/g, ''); if (!c) return "";
-        let h, m; 
-        if (c.length <= 2) { h = parseInt(c); m = 0; } 
-        else if (c.length === 3) { h = parseInt(c[0]); m = parseInt(c.slice(1)); } 
-        else { h = parseInt(c.slice(0, 2)); m = parseInt(c.slice(2, 4)); }
-        
-        if (h > 12) h = 12; if (m > 59) m = 59; if (h === 0) h = 12;
-        return `${h}:${m.toString().padStart(2, '0')} AM`;
-    }
-
-    // Backup & Restore
-    function saveDataFile() {
-        const data = {}; 
-        for (let i = 0; i < localStorage.length; i++) { data[localStorage.key(i)] = localStorage.getItem(localStorage.key(i)); }
-        const a = document.createElement('a'); 
-        a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })); 
-        a.download = `tracker_backup.json`; 
-        a.click();
-    }
-
-    function loadDataFile(e) {
-        const reader = new FileReader(); 
-        reader.onload = (ev) => { 
-            const d = JSON.parse(ev.target.result); 
-            Object.keys(d).forEach(k => localStorage.setItem(k, d[k])); 
-            loadDayData(); 
-        }; 
-        reader.readAsText(e.target.files[0]);
-    }
-
-    // Setup Listeners
-    function setupListeners() {
-        const wake = document.getElementById('wake-time');
-        const text = document.getElementById('journal-text');
-        const habits = document.querySelectorAll('.habit-cb');
-
-        // Save on changes
-        wake.onblur = () => { wake.value = formatWakeTime(wake.value); saveDayData(); };
-        text.oninput = saveDayData;
-        habits.forEach(h => { 
-            h.onchange = saveDayData; 
-        });
-    }
-
-    // Initialize App
-    window.onload = () => {
-        setupListeners();
-        loadDayData();
+    // --- ROUTINE DEFINITION ---
+    const ROUTINE = {
+        LEGS: [
+            { id: "squat", name: "Barbell Back Squat", target: "3 × 6–8 reps" },
+            { id: "rdl", name: "Barbell Romanian Deadlift", target: "3 × 8–10 reps" },
+            { id: "calf_core", name: "Standing Calf + Deadbug", target: "2 × 15 / 10 side" },
+            { id: "swings", name: "2-Hand KB Swings (Finisher)", target: "5 × 10 EMOM (50 reps)" }
+        ],
+        PUSH: [
+            { id: "kb_push_press", name: "KB Push Press (Power Primer)", target: "3 × 5 / side (Snappy)" },
+            { id: "ohp", name: "Standing Barbell OHP", target: "3 × 6–8 reps" },
+            { id: "pushups", name: "Deep Parallette Push-ups", target: "3 × 8–12 reps" },
+            { id: "lateral_raises", name: "Dumbbell Lateral Raises", target: "2 × 12–15 reps" },
+            { id: "tricep_ext", name: "Overhead KB Triceps Ext", target: "2 × 10–12 reps" }
+        ],
+        PULL: [
+            { id: "high_pulls", name: "1-Arm KB High Pulls (Power)", target: "3 × 5 / side (Fast)" },
+            { id: "chins", name: "Chin-ups / Band Assisted", target: "3 × 5–8 reps" },
+            { id: "pendlay", name: "Barbell Pendlay Row", target: "3 × 6–8 reps" },
+            { id: "rear_delt", name: "Dumbbell Rear-Delt Fly", target: "2 × 12–15 reps" },
+            { id: "curls", name: "Barbell / DB Bicep Curls", target: "2 × 8–12 reps" }
+        ]
     };
+
+    let currentTab = "LEGS";
+    let trainingLog = JSON.parse(localStorage.getItem('workout_log_cache')) || [];
+
+    // --- REALTIME SYNC LISTENER ---
+    workoutDbRef.on('value', snapshot => {
+        const data = snapshot.val();
+        if (data) {
+            trainingLog = Object.values(data);
+            localStorage.setItem('workout_log_cache', JSON.stringify(trainingLog));
+            renderTabContent();
+            document.getElementById('sync-status').textContent = "☁️ Synced";
+        }
+    });
+
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.innerText === tab || (tab === 'DASH' && btn.innerText === 'STATS'));
+        });
+        renderTabContent();
+    }
+
+    function getFormattedToday() {
+        return new Date().toISOString().split('T')[0];
+    }
+
+    function renderTabContent() {
+        const container = document.getElementById('tab-content');
+        container.innerHTML = "";
+
+        if (currentTab === "DASH") {
+            renderDashboard(container);
+            return;
+        }
+
+        const header = document.createElement('div');
+        header.className = "section-header";
+        header.innerHTML = `
+            <div class="section-title">${currentTab} SESSION</div>
+            <input type="date" id="session-date" class="session-date-picker" value="${getFormattedToday()}">
+        `;
+        container.appendChild(header);
+
+        ROUTINE[currentTab].forEach(exercise => {
+            const card = document.createElement('div');
+            card.className = "card";
+
+            const history = trainingLog.filter(item => item.exerciseId === exercise.id);
+            const prev = history.length > 0 ? history[history.length - 1] : null;
+            const prevDisplay = prev 
+                ? `${prev.weight}kg · [${prev.s1}, ${prev.s2}, ${prev.s3 || '-'}] · RIR ${prev.rir}`
+                : "No entries logged yet";
+
+            card.innerHTML = `
+                <div class="card-top">
+                    <h4 class="exercise-name">${exercise.name}</h4>
+                    <span class="exercise-target">${exercise.target}</span>
+                </div>
+
+                <div class="prev-reference">
+                    <span>Last:</span>
+                    <span class="prev-data">${prevDisplay}</span>
+                </div>
+
+                <div class="set-inputs-grid">
+                    <div class="input-group">
+                        <span class="input-label">Weight</span>
+                        <input type="number" step="0.5" id="w_${exercise.id}" class="num-input" placeholder="${prev ? prev.weight : 'kg'}">
+                    </div>
+                    <div class="input-group">
+                        <span class="input-label">Set 1</span>
+                        <input type="number" id="s1_${exercise.id}" class="num-input" placeholder="reps">
+                    </div>
+                    <div class="input-group">
+                        <span class="input-label">Set 2</span>
+                        <input type="number" id="s2_${exercise.id}" class="num-input" placeholder="reps">
+                    </div>
+                    <div class="input-group">
+                        <span class="input-label">Set 3</span>
+                        <input type="number" id="s3_${exercise.id}" class="num-input" placeholder="reps">
+                    </div>
+                    <div class="input-group">
+                        <span class="input-label">RIR</span>
+                        <input type="number" id="rir_${exercise.id}" class="num-input" placeholder="0-3">
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <input type="text" id="notes_${exercise.id}" class="notes-input" placeholder="Notes (optional)">
+                    <button class="save-btn" onclick="saveEntry('${exercise.id}')">Log</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function saveEntry(exerciseId) {
+        const date = document.getElementById('session-date').value;
+        const weight = parseFloat(document.getElementById(`w_${exerciseId}`).value) || 0;
+        const s1 = parseInt(document.getElementById(`s1_${exerciseId}`).value) || 0;
+        const s2 = parseInt(document.getElementById(`s2_${exerciseId}`).value) || 0;
+        const s3 = parseInt(document.getElementById(`s3_${exerciseId}`).value) || 0;
+        const rir = document.getElementById(`rir_${exerciseId}`).value || "-";
+        const notes = document.getElementById(`notes_${exerciseId}`).value;
+
+        if (!s1 && !s2 && !weight) {
+            alert("Please input at least weight and reps before logging.");
+            return;
+        }
+
+        const logId = `entry_${Date.now()}`;
+        const newLog = {
+            id: logId,
+            date: date,
+            day: currentTab,
+            exerciseId: exerciseId,
+            weight: weight,
+            s1: s1,
+            s2: s2,
+            s3: s3,
+            rir: rir,
+            notes: notes
+        };
+
+        // Writes specifically to /workout_tracker/logs/{logId}
+        workoutDbRef.child(logId).set(newLog);
+    }
+
+    function renderDashboard(container) {
+        const totalWorkouts = new Set(trainingLog.map(i => `${i.date}_${i.day}`)).size;
+
+        container.innerHTML = `
+            <div class="section-header">
+                <div class="section-title">PROGRESSION STATS</div>
+            </div>
+
+            <div class="dash-metric-grid">
+                <div class="dash-metric-card">
+                    <div class="metric-value">${totalWorkouts}</div>
+                    <div class="metric-label">Completed Sessions</div>
+                </div>
+                <div class="dash-metric-card">
+                    <div class="metric-value">${trainingLog.length}</div>
+                    <div class="metric-label">Logged Exercises</div>
+                </div>
+            </div>
+
+            <div style="font-size: 0.8rem; font-weight: 700; margin-top: 15px; color: var(--text-secondary);">ESTIMATED STRENGTH PEAKS</div>
+            <div class="history-list" id="peaks-list"></div>
+
+            <div style="font-size: 0.8rem; font-weight: 700; margin-top: 15px; color: var(--text-secondary);">RECENT ACTIVITY</div>
+            <div class="history-list" id="recent-list"></div>
+        `;
+
+        const trackedLifts = [
+            { id: "squat", name: "Back Squat" },
+            { id: "ohp", name: "Overhead Press" },
+            { id: "pendlay", name: "Pendlay Row" },
+            { id: "rdl", name: "Romanian Deadlift" }
+        ];
+
+        const peaksContainer = document.getElementById('peaks-list');
+        trackedLifts.forEach(lift => {
+            const records = trainingLog.filter(l => l.exerciseId === lift.id);
+            let maxWeight = 0;
+            records.forEach(r => { if (r.weight > maxWeight) maxWeight = r.weight; });
+
+            const row = document.createElement('div');
+            row.className = "history-item";
+            row.innerHTML = `
+                <span>${lift.name}</span>
+                <strong style="color: var(--accent-gold);">${maxWeight > 0 ? maxWeight + ' kg' : '—'}</strong>
+            `;
+            peaksContainer.appendChild(row);
+        });
+
+        const recentContainer = document.getElementById('recent-list');
+        const reversedLog = [...trainingLog].reverse().slice(0, 8);
+
+        if (reversedLog.length === 0) {
+            recentContainer.innerHTML = `<div style="color: #444; font-size: 0.75rem;">No workouts completed yet.</div>`;
+        } else {
+            reversedLog.forEach(item => {
+                const row = document.createElement('div');
+                row.className = "history-item";
+                row.innerHTML = `
+                    <div>
+                        <div style="font-weight: 600;">${item.exerciseId.toUpperCase()} · ${item.weight}kg</div>
+                        <div style="color: #666; font-size: 0.65rem;">${item.date} · Reps: ${item.s1}/${item.s2}/${item.s3} (RIR ${item.rir})</div>
+                    </div>
+                    <button style="background:transparent; border:none; color: var(--danger); cursor:pointer;" onclick="deleteEntry('${item.id}')">✕</button>
+                `;
+                recentContainer.appendChild(row);
+            });
+        }
+    }
+
+    function deleteEntry(id) {
+        if (confirm("Delete this log entry?")) {
+            workoutDbRef.child(id).remove();
+        }
+    }
+
+    window.onload = renderTabContent;
 </script>
 </body>
 </html>
