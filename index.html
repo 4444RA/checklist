@@ -32,14 +32,14 @@
         }
 
         .tabs-nav {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
             background: var(--surface-color); padding: 4px; border-radius: 8px;
             border: 1px solid var(--surface-border); position: sticky; top: 10px; z-index: 50;
         }
         .tab-btn {
             background: transparent; border: none; color: var(--text-secondary);
-            padding: 8px 0; border-radius: 6px; font-weight: 600; font-size: 0.75rem;
-            cursor: pointer; text-align: center; transition: 0.15s;
+            padding: 8px 0; border-radius: 6px; font-weight: 600; font-size: 0.68rem;
+            cursor: pointer; text-align: center; transition: 0.15s; letter-spacing: 0.02em;
         }
         .tab-btn.active { background: #262626; color: #fff; }
 
@@ -72,7 +72,6 @@
         }
         .chart-icon-btn:hover { opacity: 1; }
 
-        /* Sets input layout */
         .sets-block {
             display: flex; flex-direction: column; gap: 6px; background: #0c0c0c;
             padding: 8px 10px; border-radius: 6px; border: 1px solid #1a1a1a;
@@ -106,14 +105,15 @@
             background: #2a2a2a; color: #fff; border: 1px solid #555;
         }
 
-        /* Stats & Metric Cards */
+        /* Metric Cards */
         .dash-metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
         .dash-metric-card {
             background: var(--surface-color); border: 1px solid var(--surface-border);
             padding: 14px; border-radius: 8px; text-align: left;
         }
         .metric-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 4px; }
-        .metric-value { font-size: 2rem; font-weight: 200; margin: 0; line-height: 1; color: #ffffff; }
+        .metric-value { font-size: 1.8rem; font-weight: 200; margin: 0; line-height: 1; color: #ffffff; }
+        .metric-sub { font-size: 0.65rem; color: #666; margin-top: 4px; }
 
         /* Day Toggle Selector for Stacked Charts */
         .day-toggle-bar {
@@ -128,7 +128,6 @@
             background: #262626; color: #fff; border-color: #444;
         }
 
-        /* Stacked Charts Container */
         .stacked-charts-wrapper {
             display: flex; flex-direction: column; gap: 12px;
         }
@@ -158,13 +157,18 @@
             font-size: 0.8rem; padding: 2px 6px;
         }
         .delete-btn:hover { color: #fff; }
+
+        /* Weight Entry Specific */
+        .weight-input-grid {
+            display: grid; grid-template-columns: 1.2fr 1fr auto; gap: 8px; align-items: center;
+        }
     </style>
 </head>
 <body>
 
 <div id="app-container" class="app-container">
     <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:0.75rem; font-weight:600; letter-spacing:0.05em; color:var(--text-secondary);">POWER & HYPERTROPHY</span>
+        <span style="font-size:0.75rem; font-weight:600; letter-spacing:0.05em; color:var(--text-secondary);">BODY & PERFORMANCE</span>
         <span id="sync-status" class="cloud-badge">Synced</span>
     </div>
 
@@ -172,6 +176,7 @@
         <button class="tab-btn active" onclick="switchTab('LEGS')">LEGS</button>
         <button class="tab-btn" onclick="switchTab('PUSH')">PUSH</button>
         <button class="tab-btn" onclick="switchTab('PULL')">PULL</button>
+        <button class="tab-btn" onclick="switchTab('WEIGHT')">WEIGHT</button>
         <button class="tab-btn" onclick="switchTab('DASH')">STATS</button>
     </nav>
 
@@ -195,7 +200,10 @@
 
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
+    
+    // Separate paths under workout_tracker (both safely write-accessible)
     const workoutDbRef = database.ref('workout_tracker/logs');
+    const weightDbRef = database.ref('workout_tracker/bodyweight');
 
     const ROUTINE = {
         LEGS: [
@@ -222,31 +230,45 @@
 
     let currentTab = "LEGS";
     let trainingLog = JSON.parse(localStorage.getItem('workout_log_cache')) || [];
-    let chartDay = "LEGS"; // "LEGS", "PUSH", or "PULL"
+    let bodyweightLog = JSON.parse(localStorage.getItem('bw_log_cache')) || [];
+    let chartDay = "LEGS";
     let activeChartInstances = [];
+    let weightChartInstance = null;
     let undoTimers = {};
 
+    // 1. Workout Firebase Listener
     workoutDbRef.on('value', snapshot => {
         const logs = [];
         snapshot.forEach(child => {
-            logs.push({
-                ...child.val(),
-                id: child.key
-            });
+            logs.push({ ...child.val(), id: child.key });
         });
         trainingLog = logs;
         localStorage.setItem('workout_log_cache', JSON.stringify(trainingLog));
-        renderTabContent();
+        if (currentTab !== "WEIGHT") renderTabContent();
         document.getElementById('sync-status').textContent = "Synced";
     }, error => {
-        console.error("Firebase read error:", error);
-        document.getElementById('sync-status').textContent = "Offline";
+        console.error("Workout read error:", error);
+    });
+
+    // 2. Bodyweight Firebase Listener
+    weightDbRef.on('value', snapshot => {
+        const logs = [];
+        snapshot.forEach(child => {
+            logs.push({ ...child.val(), id: child.key });
+        });
+        bodyweightLog = logs;
+        localStorage.setItem('bw_log_cache', JSON.stringify(bodyweightLog));
+        if (currentTab === "WEIGHT") renderTabContent();
+        document.getElementById('sync-status').textContent = "Synced";
+    }, error => {
+        console.error("Weight read error:", error);
     });
 
     function switchTab(tab) {
         currentTab = tab;
         document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.innerText === tab || (tab === 'DASH' && btn.innerText === 'STATS'));
+            const matches = btn.innerText === tab || (tab === 'DASH' && btn.innerText === 'STATS');
+            btn.classList.toggle('active', matches);
         });
         renderTabContent();
     }
@@ -293,6 +315,11 @@
 
         if (currentTab === "DASH") {
             renderDashboard(container);
+            return;
+        }
+
+        if (currentTab === "WEIGHT") {
+            renderWeightTab(container);
             return;
         }
 
@@ -417,7 +444,254 @@
         }, 5000);
     }
 
-    // --- DASHBOARD & STACKED CHARTS ---
+    // --- BODYWEIGHT TRACKING TAB ---
+    function renderWeightTab(container) {
+        // Sort logs chronologically
+        const sortedLogs = [...bodyweightLog].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        // Group into Calendar Weeks (Monday to Sunday)
+        const weeklyGroups = {};
+        sortedLogs.forEach(entry => {
+            const d = new Date(entry.date + "T00:00:00");
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(d.setDate(diff)).toISOString().split('T')[0];
+
+            if (!weeklyGroups[monday]) weeklyGroups[monday] = [];
+            weeklyGroups[monday].push(entry.weight);
+        });
+
+        const weekKeys = Object.keys(weeklyGroups).sort();
+        const weeklyAverages = weekKeys.map(k => {
+            const weights = weeklyGroups[k];
+            const avg = weights.reduce((a, b) => a + b, 0) / weights.length;
+            return { weekStart: k, avg: parseFloat(avg.toFixed(2)) };
+        });
+
+        // Current 7-Day Rolling Average
+        const last7Days = sortedLogs.slice(-7);
+        const current7DayAvg = last7Days.length > 0 
+            ? (last7Days.reduce((a, b) => a + b.weight, 0) / last7Days.length).toFixed(2)
+            : "--";
+
+        // Weekly Rate of Change (Comparing latest week average to prior week average)
+        let rateDisplay = "--";
+        if (weeklyAverages.length >= 2) {
+            const latest = weeklyAverages[weeklyAverages.length - 1].avg;
+            const prior = weeklyAverages[weeklyAverages.length - 2].avg;
+            const diff = latest - prior;
+            const sign = diff >= 0 ? "+" : "";
+            rateDisplay = `${sign}${diff.toFixed(2)} kg/wk`;
+        }
+
+        container.innerHTML = `
+            <div class="section-header">
+                <div class="section-title">BODYWEIGHT</div>
+            </div>
+
+            <div class="dash-metric-grid">
+                <div class="dash-metric-card">
+                    <div class="metric-label">7-Day Average</div>
+                    <div class="metric-value">${current7DayAvg}<span style="font-size:1rem; color:#888;"> kg</span></div>
+                    <div class="metric-sub">Smooth rolling average</div>
+                </div>
+                <div class="dash-metric-card">
+                    <div class="metric-label">Weekly Trend</div>
+                    <div class="metric-value" style="font-size:1.5rem;">${rateDisplay}</div>
+                    <div class="metric-sub">vs previous week</div>
+                </div>
+            </div>
+
+            <!-- Daily Entry Card -->
+            <div class="card">
+                <div class="card-top">
+                    <span class="exercise-name">Log Weigh-In</span>
+                    <span class="exercise-target">Daily morning</span>
+                </div>
+                <div class="weight-input-grid">
+                    <input type="date" id="bw-date" class="session-date-picker" value="${new Date().toISOString().split('T')[0]}" style="width:100%;">
+                    <input type="number" step="0.1" id="bw-weight" class="num-input" placeholder="kg (e.g. 78.5)">
+                    <button class="save-btn" onclick="saveWeightEntry()">Log</button>
+                </div>
+            </div>
+
+            <!-- Trend Chart -->
+            <div class="chart-card-stacked">
+                <div class="chart-card-header">
+                    <span class="chart-card-title">Weekly Progression Curve</span>
+                    <span class="chart-card-pr">Solid = Avg · Dotted = Daily</span>
+                </div>
+                <div class="chart-canvas-box" style="height:210px;">
+                    <canvas id="bodyweightCanvas"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Weigh-ins -->
+            <div style="font-size: 0.8rem; font-weight: 600; margin-top: 15px; color: var(--text-secondary);">RECENT WEIGH-INS</div>
+            <div class="history-list" id="bw-recent-list"></div>
+        `;
+
+        requestAnimationFrame(() => {
+            renderWeightChart(sortedLogs, weeklyAverages);
+        });
+
+        // Render Recent Weigh-In List
+        const listContainer = document.getElementById('bw-recent-list');
+        const reversedBw = [...sortedLogs].reverse().slice(0, 10);
+
+        if (reversedBw.length === 0) {
+            listContainer.innerHTML = `<div style="color: #444; font-size: 0.75rem;">No weigh-ins logged yet.</div>`;
+        } else {
+            reversedBw.forEach(item => {
+                const row = document.createElement('div');
+                row.className = "history-item";
+                row.innerHTML = `
+                    <div>
+                        <strong style="font-size:0.85rem;">${item.weight} kg</strong>
+                        <span style="color: #777; font-size: 0.7rem; margin-left:8px;">${item.date}</span>
+                    </div>
+                    <button class="delete-btn" onclick="deleteWeightEntry('${item.id}')">✕</button>
+                `;
+                listContainer.appendChild(row);
+            });
+        }
+    }
+
+    function saveWeightEntry() {
+        const dateInput = document.getElementById('bw-date').value;
+        const weightInput = parseFloat(document.getElementById('bw-weight').value);
+
+        if (!weightInput || isNaN(weightInput)) {
+            alert("Please enter a valid weight.");
+            return;
+        }
+
+        // Use the date as the primary ID so duplicate entries on the same day cleanly update
+        const id = `bw_${dateInput.replace(/-/g, '')}`;
+        const newEntry = {
+            id: id,
+            date: dateInput,
+            weight: parseFloat(weightInput.toFixed(2)),
+            timestamp: Date.now()
+        };
+
+        weightDbRef.child(id).set(newEntry).then(() => {
+            document.getElementById('bw-weight').value = "";
+        });
+    }
+
+    function deleteWeightEntry(id) {
+        if (!confirm("Delete this weigh-in entry?")) return;
+
+        bodyweightLog = bodyweightLog.filter(item => String(item.id) !== String(id));
+        localStorage.setItem('bw_log_cache', JSON.stringify(bodyweightLog));
+        renderWeightTab(document.getElementById('tab-content'));
+
+        weightDbRef.child(id).remove().catch(err => console.error(err));
+    }
+
+    function renderWeightChart(dailyLogs, weeklyAverages) {
+        const canvas = document.getElementById('bodyweightCanvas');
+        if (!canvas) return;
+
+        if (weightChartInstance) {
+            try { weightChartInstance.destroy(); } catch(e){}
+        }
+
+        // Align daily points and weekly averages on the same timeline
+        const allDates = dailyLogs.map(l => l.date);
+        const dailyWeights = dailyLogs.map(l => l.weight);
+
+        // Map weekly averages across dates
+        const weeklyDataMapped = allDates.map(dateStr => {
+            const d = new Date(dateStr + "T00:00:00");
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(d.setDate(diff)).toISOString().split('T')[0];
+            const match = weeklyAverages.find(w => w.weekStart === monday);
+            return match ? match.avg : null;
+        });
+
+        const labels = allDates.map(d => {
+            const parts = d.split('-');
+            return `${parts[1]}/${parts[2]}`;
+        });
+
+        const displayLabels = labels.length > 0 ? labels : ['D1', 'D2', 'D3', 'D4', 'D5'];
+        const displayDaily = dailyWeights.length > 0 ? dailyWeights : [0, 0, 0, 0, 0];
+        const displayWeekly = weeklyDataMapped.length > 0 ? weeklyDataMapped : [0, 0, 0, 0, 0];
+
+        const ctx = canvas.getContext('2d');
+        weightChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: displayLabels,
+                datasets: [
+                    {
+                        label: 'Weekly Avg',
+                        data: displayWeekly,
+                        borderColor: '#ffffff',
+                        borderWidth: 2.5,
+                        backgroundColor: 'transparent',
+                        pointRadius: 0,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: '#ffffff',
+                        tension: 0.3,
+                        spanGaps: true
+                    },
+                    {
+                        label: 'Daily',
+                        data: displayDaily,
+                        borderColor: 'rgba(255, 255, 255, 0.25)',
+                        borderWidth: 1,
+                        borderDash: [3, 3],
+                        backgroundColor: 'transparent',
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: '#888888',
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1a1a1a',
+                        titleColor: '#888888',
+                        bodyColor: '#ffffff',
+                        borderColor: '#333333',
+                        borderWidth: 1,
+                        padding: 8,
+                        callbacks: {
+                            label: (context) => `${context.dataset.label}: ${context.parsed.y} kg`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                        ticks: { color: '#555', font: { size: 9 }, maxTicksLimit: 8 }
+                    },
+                    y: {
+                        grid: { 
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            borderDash: [3, 3] 
+                        },
+                        ticks: { 
+                            color: '#555', 
+                            font: { size: 9 },
+                            callback: (val) => `${val}kg`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // --- STATS TAB (PERFORMANCE) ---
     function renderDashboard(container) {
         const totalWorkouts = new Set(trainingLog.map(i => `${i.date}_${i.day}`)).size;
         
@@ -439,7 +713,6 @@
 
         const improvingRatio = evaluatedCount > 0 ? `${improvingCount}/${evaluatedCount}` : "0/0";
 
-        // Exercises for currently selected day
         const dayExercises = ROUTINE[chartDay] || ROUTINE.LEGS;
 
         let chartsHtml = "";
@@ -477,14 +750,12 @@
                 </div>
             </div>
 
-            <!-- Day Toggle Bar for Stacked Charts -->
             <div class="day-toggle-bar">
                 <button class="day-toggle-btn ${chartDay === 'LEGS' ? 'active' : ''}" onclick="selectChartDay('LEGS')">LEGS</button>
                 <button class="day-toggle-btn ${chartDay === 'PUSH' ? 'active' : ''}" onclick="selectChartDay('PUSH')">PUSH</button>
                 <button class="day-toggle-btn ${chartDay === 'PULL' ? 'active' : ''}" onclick="selectChartDay('PULL')">PULL</button>
             </div>
 
-            <!-- All exercises for selected day stacked vertically -->
             <div class="stacked-charts-wrapper">
                 ${chartsHtml}
             </div>
@@ -493,7 +764,6 @@
             <div class="history-list" id="recent-list"></div>
         `;
 
-        // Render each chart safely via RAF
         requestAnimationFrame(() => {
             renderStackedChartsForDay(dayExercises);
         });
