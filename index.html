@@ -172,7 +172,7 @@
             display: grid; grid-template-columns: 1.2fr 1fr auto; gap: 8px; align-items: center;
         }
 
-        /* --- REDESIGNED REST TIMER DOCK (BIGGER & 2-TIER) --- */
+        /* 2-TIER REST TIMER DOCK */
         .rest-timer-dock {
             position: fixed;
             bottom: 12px;
@@ -228,7 +228,6 @@
         }
         .timer-utility-btn:active { background: #333; }
 
-        /* Big preset touch targets */
         .timer-presets-grid {
             display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px;
         }
@@ -261,7 +260,7 @@
     <div id="tab-content"></div>
 </div>
 
-<!-- Floating Rest Timer Dock (Accessible on workout days) -->
+<!-- Floating Rest Timer Dock -->
 <div id="rest-dock" class="rest-timer-dock">
     <div class="timer-top-row">
         <div class="timer-info-group">
@@ -273,7 +272,6 @@
             <button class="timer-utility-btn" onclick="stopRestTimer()">✕</button>
         </div>
     </div>
-    <!-- 6 Big Presets: 1m, 1.5m, 2m, 3m, 4m, 5m -->
     <div class="timer-presets-grid">
         <button class="timer-preset-btn" onclick="startRestTimer(60)">1m</button>
         <button class="timer-preset-btn" onclick="startRestTimer(90)">1.5</button>
@@ -304,9 +302,11 @@
     const workoutDbRef = database.ref('workout_tracker/logs');
     const weightDbRef = database.ref('workout_tracker/bodyweight');
 
+    // Updated Routine: Added KB Reverse Lunges to Leg Day (Seamless swap for Leg Extension later)
     const ROUTINE = {
         LEGS: [
             { id: "squat", name: "Barbell Back Squat", target: "2 × 6–8 reps (Top + Back-off)", sets: 2 },
+            { id: "kb_reverse_lunge", name: "KB Reverse Lunge", target: "2 × 8–10 / leg (Goblet hold)", sets: 2 },
             { id: "rdl", name: "Barbell Romanian Deadlift", target: "2 × 8–10 reps", sets: 2 },
             { id: "calf_core", name: "Standing Calf + Deadbug", target: "2 × 15 / 10 side", sets: 2 },
             { id: "swings", name: "2-Hand KB Swings (Finisher)", target: "5 × 10 EMOM (50 reps)", sets: 5 }
@@ -337,12 +337,10 @@
     let undoTimers = {};
     let dynamicSetCounts = {};
 
-    // --- REST TIMER & IPHONE AUDIO FIX ---
     let restTimerInterval = null;
     let restSecondsRemaining = 0;
     let sharedAudioCtx = null;
 
-    // Explicitly primes and unlocks Web Audio on iOS WebKit
     function unlockIOSAudio() {
         if (!sharedAudioCtx) {
             sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -350,7 +348,6 @@
         if (sharedAudioCtx.state === 'suspended') {
             sharedAudioCtx.resume();
         }
-        // Microscopic silent oscillator to unlock audio queue on iOS
         try {
             const osc = sharedAudioCtx.createOscillator();
             const gain = sharedAudioCtx.createGain();
@@ -362,7 +359,6 @@
         } catch(e) {}
     }
 
-    // Unlock on initial screen touches
     document.addEventListener('touchstart', unlockIOSAudio, { once: true });
     document.addEventListener('click', unlockIOSAudio, { once: true });
 
@@ -417,7 +413,6 @@
         status.textContent = "Resting";
         display.textContent = formatTime(restSecondsRemaining);
 
-        // Tactile short confirmation click
         playAlertTone(440, 0.08);
 
         restTimerInterval = setInterval(() => {
@@ -476,7 +471,6 @@
         status.textContent = "Rest Timer";
     }
 
-    // --- FIREBASE LISTENERS ---
     workoutDbRef.on('value', snapshot => {
         const logs = [];
         snapshot.forEach(child => {
