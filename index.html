@@ -72,6 +72,7 @@
         }
         .chart-icon-btn:hover { opacity: 1; }
 
+        /* Sets block with dynamic controls */
         .sets-block-container {
             display: flex; flex-direction: column; gap: 6px;
         }
@@ -117,6 +118,7 @@
             background: #2a2a2a; color: #fff; border: 1px solid #555;
         }
 
+        /* Metric Cards */
         .dash-metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
         .dash-metric-card {
             background: var(--surface-color); border: 1px solid var(--surface-border);
@@ -302,7 +304,7 @@
     const workoutDbRef = database.ref('workout_tracker/logs');
     const weightDbRef = database.ref('workout_tracker/bodyweight');
 
-    // Updated Routine: Added KB Reverse Lunges to Leg Day (Seamless swap for Leg Extension later)
+    // Fully updated routine across Legs, Push, and Pull
     const ROUTINE = {
         LEGS: [
             { id: "squat", name: "Barbell Back Squat", target: "2 × 6–8 reps (Top + Back-off)", sets: 2 },
@@ -311,7 +313,7 @@
             { id: "calf_core", name: "Standing Calf + Deadbug", target: "2 × 15 / 10 side", sets: 2 },
             { id: "swings", name: "2-Hand KB Swings (Finisher)", target: "5 × 10 EMOM (50 reps)", sets: 5 }
         ],
-   PUSH: [
+        PUSH: [
             { id: "kb_push_press", name: "KB Push Press (Power Primer)", target: "3 × 5 / side (Snappy)", sets: 3 },
             { id: "incline_bench", name: "Incline Barbell Bench (15–30°)", target: "2 × 6–8 reps (Top + Back-off)", sets: 2 },
             { id: "ohp", name: "Standing Barbell OHP", target: "2 × 6–8 reps (Top + Back-off)", sets: 2 },
@@ -320,9 +322,9 @@
             { id: "tricep_ext", name: "Triceps Ext (Skull Crushers / KB)", target: "2 × 10–12 reps", sets: 2 }
         ],
         PULL: [
-            { id: "kb_cleans", name: "1-Arm KB Cleans (Power Primer)", target: "3 × 5 / side (Explosive)", sets: 3 },
-            { id: "chins", name: "Chin-ups / Band Assisted", target: "2 × 5–8 reps", sets: 2 },
+            { id: "chins", name: "Chin-ups / Band Assisted", target: "2 × 5–8 reps (Start Fresh)", sets: 2 },
             { id: "pendlay", name: "Barbell Pendlay Row", target: "2 × 6–8 reps (Top + Back-off)", sets: 2 },
+            { id: "band_pulldown", name: "Band Straight-Arm Pulldown", target: "2 × 12–15 reps (Lat Stretch)", sets: 2 },
             { id: "rear_delt", name: "Dumbbell Rear-Delt Fly", target: "2 × 12–15 reps", sets: 2 },
             { id: "shrugs", name: "Barbell or DB Shrugs", target: "2 × 10–15 reps (Pause at top)", sets: 2 },
             { id: "curls", name: "Barbell / DB Bicep Curls", target: "2 × 8–12 reps", sets: 2 }
