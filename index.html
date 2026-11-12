@@ -53,6 +53,60 @@
             color: var(--text-secondary); font-size: 0.8rem; border-radius: 6px; padding: 4px 8px;
         }
 
+        /* --- WARM-UP CARD STYLING --- */
+        .warmup-card {
+            background: #0d0d0d;
+            border: 1px dashed #2a2a2a;
+            border-radius: 8px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .warmup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .warmup-title {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .warmup-toggle-btn {
+            background: transparent;
+            border: none;
+            color: #666;
+            font-size: 0.65rem;
+            cursor: pointer;
+            padding: 0;
+            text-decoration: underline;
+        }
+        .warmup-toggle-btn:hover { color: #aaa; }
+        .warmup-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .warmup-item {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            font-size: 0.75rem;
+            padding-left: 8px;
+            border-left: 2px solid #282828;
+        }
+        .warmup-item-name {
+            font-weight: 600;
+            color: #ddd;
+        }
+        .warmup-item-cue {
+            font-size: 0.65rem;
+            color: #777;
+        }
+
         .card {
             background: var(--surface-color); border: 1px solid var(--surface-border);
             border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 10px;
@@ -72,7 +126,6 @@
         }
         .chart-icon-btn:hover { opacity: 1; }
 
-        /* Sets block with dynamic controls */
         .sets-block-container {
             display: flex; flex-direction: column; gap: 6px;
         }
@@ -118,7 +171,6 @@
             background: #2a2a2a; color: #fff; border: 1px solid #555;
         }
 
-        /* Metric Cards */
         .dash-metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
         .dash-metric-card {
             background: var(--surface-color); border: 1px solid var(--surface-border);
@@ -304,7 +356,25 @@
     const workoutDbRef = database.ref('workout_tracker/logs');
     const weightDbRef = database.ref('workout_tracker/bodyweight');
 
-    // Fully updated routine across Legs, Push, and Pull
+    // WARM-UP PROTOCOLS FOR EACH DAY
+    const WARMUPS = {
+        LEGS: [
+            { name: "Prying Squats", cue: "2 rounds × 5–8 reps (sink deep, pry knees out with elbows)" },
+            { name: "Glute Bridges", cue: "2 rounds × 8–10 reps (hold 1-sec squeeze at the top)" },
+            { name: "Ankle & Hip Rockers", cue: "30 sec (mobilize ankles for upright squat depth)" }
+        ],
+        PUSH: [
+            { name: "KB Halos (6 kg)", cue: "2 rounds × 8–10 reps (slow, orbit tight around head)" },
+            { name: "Doorway Pec Stretch", cue: "2 × 20–30 sec (open chest, focus on left shoulder)" },
+            { name: "Wrist & Scapular Prep", cue: "15–20 sec circles (prep wrists and pack shoulders)" }
+        ],
+        PULL: [
+            { name: "Cat-Cow Spine Waves", cue: "2 rounds × 6–8 reps (mobilize thoracic spine)" },
+            { name: "KB Halos (6 kg)", cue: "2 rounds × 8–10 reps (rotator cuff lubrication)" },
+            { name: "Passive / Scapular Hang", cue: "1–2 hangs × 15–20 sec (decompress spine, wake up lats)" }
+        ]
+    };
+
     const ROUTINE = {
         LEGS: [
             { id: "squat", name: "Barbell Back Squat", target: "2 × 6–8 reps (Top + Back-off)", sets: 2 },
@@ -558,6 +628,17 @@
         renderTabContent();
     }
 
+    function toggleWarmup(btn) {
+        const body = btn.closest('.warmup-card').querySelector('.warmup-list');
+        if (body.style.display === "none") {
+            body.style.display = "flex";
+            btn.textContent = "Hide";
+        } else {
+            body.style.display = "none";
+            btn.textContent = "Show";
+        }
+    }
+
     function renderTabContent() {
         const container = document.getElementById('tab-content');
         container.innerHTML = "";
@@ -579,6 +660,33 @@
             <input type="date" id="session-date" class="session-date-picker" value="${new Date().toISOString().split('T')[0]}">
         `;
         container.appendChild(header);
+
+        // --- RENDER DEDICATED WARM-UP CARD AT THE TOP ---
+        if (WARMUPS[currentTab]) {
+            const warmupCard = document.createElement('div');
+            warmupCard.className = "warmup-card";
+
+            let itemsHtml = "";
+            WARMUPS[currentTab].forEach(w => {
+                itemsHtml += `
+                    <div class="warmup-item">
+                        <span class="warmup-item-name">${w.name}</span>
+                        <span class="warmup-item-cue">${w.cue}</span>
+                    </div>
+                `;
+            });
+
+            warmupCard.innerHTML = `
+                <div class="warmup-header">
+                    <span class="warmup-title">⚡ Warm-Up Protocol (3–4 min)</span>
+                    <button class="warmup-toggle-btn" onclick="toggleWarmup(this)">Hide</button>
+                </div>
+                <div class="warmup-list">
+                    ${itemsHtml}
+                </div>
+            `;
+            container.appendChild(warmupCard);
+        }
 
         ROUTINE[currentTab].forEach(exercise => {
             const card = document.createElement('div');
