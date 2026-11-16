@@ -32,14 +32,15 @@
         }
 
         .tabs-nav {
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
+            display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;
             background: var(--surface-color); padding: 4px; border-radius: 8px;
             border: 1px solid var(--surface-border); position: sticky; top: 10px; z-index: 50;
         }
         .tab-btn {
             background: transparent; border: none; color: var(--text-secondary);
-            padding: 8px 0; border-radius: 6px; font-weight: 600; font-size: 0.68rem;
-            cursor: pointer; text-align: center; transition: 0.15s; letter-spacing: 0.02em;
+            padding: 8px 1px; border-radius: 6px; font-weight: 600; font-size: 0.65rem;
+            cursor: pointer; text-align: center; transition: 0.15s; letter-spacing: 0.01em;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .tab-btn.active { background: #262626; color: #fff; }
 
@@ -186,12 +187,13 @@
         .metric-value { font-size: 1.8rem; font-weight: 200; margin: 0; line-height: 1; color: #ffffff; }
         .metric-sub { font-size: 0.65rem; color: #666; margin-top: 4px; }
 
+        /* Day Toggle Selector for Stacked Charts */
         .day-toggle-bar {
-            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 14px;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 14px;
         }
         .day-toggle-btn {
             background: #141414; border: 1px solid var(--surface-border); color: var(--text-secondary);
-            font-size: 0.75rem; font-weight: 600; padding: 8px 0; border-radius: 6px;
+            font-size: 0.7rem; font-weight: 600; padding: 8px 0; border-radius: 6px;
             cursor: pointer; transition: 0.15s; text-align: center;
         }
         .day-toggle-btn.active {
@@ -309,10 +311,12 @@
         <span id="sync-status" class="cloud-badge">Synced</span>
     </div>
 
+    <!-- Navigation: 6 Tabs -->
     <nav class="tabs-nav">
         <button class="tab-btn active" onclick="switchTab('LEGS')">LEGS</button>
         <button class="tab-btn" onclick="switchTab('PUSH')">PUSH</button>
         <button class="tab-btn" onclick="switchTab('PULL')">PULL</button>
+        <button class="tab-btn" onclick="switchTab('REC')">REC</button>
         <button class="tab-btn" onclick="switchTab('WEIGHT')">WEIGHT</button>
         <button class="tab-btn" onclick="switchTab('DASH')">STATS</button>
     </nav>
@@ -377,10 +381,14 @@
             { name: "Cat-Cow Spine Waves", cue: "2 rounds × 6–8 reps (mobilize thoracic spine)" },
             { name: "KB Halos (6 kg)", cue: "2 rounds × 8–10 reps (rotator cuff lubrication)" },
             { name: "Passive / Scapular Hang", cue: "1–2 hangs × 15–20 sec (decompress spine, wake up lats)" }
+        ],
+        REC: [
+            { name: "Passive Hangs", cue: "2–3 hangs × 20–30 sec (spinal decompression)" },
+            { name: "Hip & Thoracic Mobility", cue: "5 minutes (90/90 hip flow, deep squat breathing)" }
         ]
     };
 
-    // Flagged backoff: true for exercises that use Top Set + Back-Off Set formula
+    // Full 4-Day Routine including Day 4 Recovery (REC)
     const ROUTINE = {
         LEGS: [
             { id: "squat", name: "Barbell Back Squat", target: "2 × 6–8 reps (Top + Back-off)", sets: 2, backoff: true },
@@ -404,6 +412,11 @@
             { id: "rear_delt", name: "Dumbbell Rear-Delt Fly", target: "2 × 12–15 reps", sets: 2 },
             { id: "shrugs", name: "Barbell or DB Shrugs", target: "2 × 10–15 reps (Pause at top)", sets: 2 },
             { id: "curls", name: "Barbell / DB Bicep Curls", target: "2 × 8–12 reps", sets: 2 }
+        ],
+        REC: [
+            { id: "tgu", name: "Turkish Get-Up", target: "3–5 reps / side (Slow & Methodical)", sets: 1 },
+            { id: "suitcase_carry", name: "Suitcase Carry", target: "3 rounds × 30–40m / side (20 kg)", sets: 3 },
+            { id: "brisk_walk", name: "Brisk Walk / Aerobic Flush", target: "20–30 min (Conversational)", sets: 1 }
         ]
     };
 
@@ -583,6 +596,7 @@
             btn.classList.toggle('active', matches);
         });
 
+        // Hide timer on Weight and Stats tabs
         const dock = document.getElementById('rest-dock');
         if (dock) {
             dock.style.display = (tab === "WEIGHT" || tab === "DASH") ? "none" : "flex";
@@ -604,7 +618,6 @@
         return false;
     }
 
-    // --- AUTO-CALCULATE AND PROPAGATE -10% BACK-OFF WEIGHT ---
     function autoPropagateWeight(exerciseId, setIndex, value) {
         const valNum = parseFloat(value);
         const isBackoff = isBackoffExercise(exerciseId);
@@ -612,7 +625,6 @@
 
         if (setIndex === 1) {
             if (!isNaN(valNum) && valNum > 0 && isBackoff) {
-                // Calculate 10% drop rounded to the nearest 0.5 kg (matches microplates)
                 const backoffWeight = Math.round((valNum * 0.90) * 2) / 2;
                 
                 if (hintEl) {
@@ -620,14 +632,12 @@
                     hintEl.textContent = `⚡ Back-off: ${backoffWeight}kg (-10%)`;
                 }
 
-                // Auto-fill Set 2 with calculated back-off weight
                 const el2 = document.getElementById(`w_${exerciseId}_s2`);
                 if (el2 && (!el2.value || el2.dataset.autoFilled === "true")) {
                     el2.value = backoffWeight;
                     el2.dataset.autoFilled = "true";
                 }
 
-                // Fill subsequent sets with back-off weight as default
                 for (let s = 3; s <= 6; s++) {
                     const el = document.getElementById(`w_${exerciseId}_s${s}`);
                     if (el && (!el.value || el.dataset.autoFilled === "true")) {
@@ -637,7 +647,6 @@
                 }
             } else {
                 if (hintEl) hintEl.style.display = "none";
-                // Standard straight sets propagation for accessories
                 for (let s = 2; s <= 6; s++) {
                     const el = document.getElementById(`w_${exerciseId}_s${s}`);
                     if (el && (!el.value || el.dataset.autoFilled === "true")) {
@@ -702,8 +711,9 @@
 
         const header = document.createElement('div');
         header.className = "section-header";
+        const titleText = currentTab === "REC" ? "DAY 4: RECOVERY & STABILITY" : `${currentTab} SESSION`;
         header.innerHTML = `
-            <div class="section-title">${currentTab} SESSION</div>
+            <div class="section-title">${titleText}</div>
             <input type="date" id="session-date" class="session-date-picker" value="${new Date().toISOString().split('T')[0]}">
         `;
         container.appendChild(header);
@@ -723,9 +733,10 @@
                 `;
             });
 
+            const warmupBadge = currentTab === "REC" ? "⚡ Decompression & Mobility" : "⚡ Warm-Up Protocol (3–4 min)";
             warmupCard.innerHTML = `
                 <div class="warmup-header">
-                    <span class="warmup-title">⚡ Warm-Up Protocol (3–4 min)</span>
+                    <span class="warmup-title">${warmupBadge}</span>
                     <button class="warmup-toggle-btn" onclick="toggleWarmup(this)">Hide</button>
                 </div>
                 <div class="warmup-list">
@@ -756,19 +767,21 @@
                     else defaultWeight = prev.weight || '';
                 }
 
-                // Tag set 1 as Top Set and set 2 as Back-off if applicable
                 let tagLabel = `Set ${s}`;
                 if (exercise.backoff) {
                     if (s === 1) tagLabel = "Top S1";
                     else if (s === 2) tagLabel = "Back S2";
                 }
 
+                // If only 1 set (like TGU or Walk), label clearly
+                if (activeSets === 1) tagLabel = "Working";
+
                 setsHtml += `
                     <div class="set-row">
                         <span class="set-tag">${tagLabel}</span>
                         <input type="number" step="0.5" id="w_${exercise.id}_s${s}" class="num-input" placeholder="${defaultWeight ? defaultWeight + ' kg' : 'kg'}" oninput="autoPropagateWeight('${exercise.id}', ${s}, this.value)" onchange="markManualWeight(this)">
                         <span class="set-x">×</span>
-                        <input type="number" id="r_${exercise.id}_s${s}" class="num-input" placeholder="reps">
+                        <input type="number" id="r_${exercise.id}_s${s}" class="num-input" placeholder="reps/m">
                     </div>
                 `;
             }
@@ -1162,10 +1175,12 @@
                 </div>
             </div>
 
+            <!-- Day Toggle Bar for Stacked Charts: 4 Days -->
             <div class="day-toggle-bar">
                 <button class="day-toggle-btn ${chartDay === 'LEGS' ? 'active' : ''}" onclick="selectChartDay('LEGS')">LEGS</button>
                 <button class="day-toggle-btn ${chartDay === 'PUSH' ? 'active' : ''}" onclick="selectChartDay('PUSH')">PUSH</button>
                 <button class="day-toggle-btn ${chartDay === 'PULL' ? 'active' : ''}" onclick="selectChartDay('PULL')">PULL</button>
+                <button class="day-toggle-btn ${chartDay === 'REC' ? 'active' : ''}" onclick="selectChartDay('REC')">REC</button>
             </div>
 
             <div class="stacked-charts-wrapper">
