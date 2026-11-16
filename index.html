@@ -32,13 +32,13 @@
         }
 
         .tabs-nav {
-            display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
             background: var(--surface-color); padding: 4px; border-radius: 8px;
             border: 1px solid var(--surface-border); position: sticky; top: 10px; z-index: 50;
         }
         .tab-btn {
             background: transparent; border: none; color: var(--text-secondary);
-            padding: 8px 1px; border-radius: 6px; font-weight: 600; font-size: 0.65rem;
+            padding: 8px 1px; border-radius: 6px; font-weight: 600; font-size: 0.62rem;
             cursor: pointer; text-align: center; transition: 0.15s; letter-spacing: 0.01em;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
@@ -234,6 +234,83 @@
             display: grid; grid-template-columns: 1.2fr 1fr auto; gap: 8px; align-items: center;
         }
 
+        /* --- TECH NECK CHECKLIST STYLES --- */
+        .neck-item-card {
+            background: #0f0f0f;
+            border: 1px solid #222222;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            cursor: pointer;
+            transition: border-color 0.15s, background-color 0.15s;
+        }
+        .neck-item-card.completed {
+            background: #0a0a0a;
+            border-color: #2e2e2e;
+        }
+        .neck-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background: #080808;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 2px;
+            transition: 0.15s;
+        }
+        .neck-item-card.completed .neck-checkbox {
+            background: #ffffff;
+            border-color: #ffffff;
+            color: #000000;
+        }
+        .neck-checkbox::after {
+            content: '✓';
+            font-size: 12px;
+            font-weight: 900;
+            display: none;
+        }
+        .neck-item-card.completed .neck-checkbox::after {
+            display: block;
+        }
+        .neck-item-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .neck-item-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #ffffff;
+            transition: color 0.15s;
+        }
+        .neck-item-card.completed .neck-item-name {
+            color: #888888;
+        }
+        .neck-item-cue {
+            font-size: 0.7rem;
+            color: #777777;
+            line-height: 1.35;
+        }
+        .neck-progress-track {
+            width: 100%;
+            height: 4px;
+            background: #1c1c1c;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+        .neck-progress-fill {
+            height: 100%;
+            background: #ffffff;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
         /* 2-TIER REST TIMER DOCK */
         .rest-timer-dock {
             position: fixed;
@@ -311,12 +388,13 @@
         <span id="sync-status" class="cloud-badge">Synced</span>
     </div>
 
-    <!-- Navigation: 6 Tabs -->
+    <!-- Navigation: 7 Tabs -->
     <nav class="tabs-nav">
         <button class="tab-btn active" onclick="switchTab('LEGS')">LEGS</button>
         <button class="tab-btn" onclick="switchTab('PUSH')">PUSH</button>
         <button class="tab-btn" onclick="switchTab('PULL')">PULL</button>
         <button class="tab-btn" onclick="switchTab('REC')">REC</button>
+        <button class="tab-btn" onclick="switchTab('NECK')">NECK</button>
         <button class="tab-btn" onclick="switchTab('WEIGHT')">WEIGHT</button>
         <button class="tab-btn" onclick="switchTab('DASH')">STATS</button>
     </nav>
@@ -365,6 +443,7 @@
     const database = firebase.database();
     const workoutDbRef = database.ref('workout_tracker/logs');
     const weightDbRef = database.ref('workout_tracker/bodyweight');
+    const neckDbRef = database.ref('workout_tracker/neck_logs');
 
     const WARMUPS = {
         LEGS: [
@@ -388,7 +467,15 @@
         ]
     };
 
-    // Full 4-Day Routine including Day 4 Recovery (REC)
+    // 5-Point Daily Tech-Neck Protocol Schema
+    const NECK_PROTOCOL = [
+        { id: "suboccipital", name: "1. Suboccipital Release (30–60s)", cue: "Thumb or lacrosse ball pressure into soft hollows right under base of skull; breathe deeply into the release." },
+        { id: "band_tuck", name: "2. Standing Banded Chin Tucks (2 × 12–15)", cue: "Light band at eye level behind skull ridge; glide head horizontally straight back into double-chin; strict 2-sec hold." },
+        { id: "facepull_tuck", name: "3. Face Pull + Chin Tuck Combo (2 × 12)", cue: "Pull light band to nose with external rotation (thumbs back); simultaneously pack chin into hard double-chin for 2-sec hold." },
+        { id: "underhand_pullapart", name: "4. Underhand Band Pull-Aparts (2 × 15)", cue: "Palms facing UP; pull band across lower chest; tuck shoulder blades down and back into back pockets." },
+        { id: "neck_pack_cue", name: "5. Packed Neck Lifting Check", cue: "Never look up at ceiling/mirror during Squats, RDLs, Pendlay Rows & Shrugs; make gentle double-chin to align neck." }
+    ];
+
     const ROUTINE = {
         LEGS: [
             { id: "squat", name: "Barbell Back Squat", target: "2 × 6–8 reps (Top + Back-off)", sets: 2, backoff: true },
@@ -423,6 +510,7 @@
     let currentTab = "LEGS";
     let trainingLog = JSON.parse(localStorage.getItem('workout_log_cache')) || [];
     let bodyweightLog = JSON.parse(localStorage.getItem('bw_log_cache')) || [];
+    let neckLogs = JSON.parse(localStorage.getItem('neck_log_cache')) || {};
     let chartDay = "LEGS";
     let activeChartInstances = [];
     let weightChartInstance = null;
@@ -563,6 +651,7 @@
         status.textContent = "Rest Timer";
     }
 
+    // --- FIREBASE LISTENERS ---
     workoutDbRef.on('value', snapshot => {
         const logs = [];
         snapshot.forEach(child => {
@@ -570,7 +659,7 @@
         });
         trainingLog = logs;
         localStorage.setItem('workout_log_cache', JSON.stringify(trainingLog));
-        if (currentTab !== "WEIGHT") renderTabContent();
+        if (currentTab !== "WEIGHT" && currentTab !== "NECK") renderTabContent();
         document.getElementById('sync-status').textContent = "Synced";
     }, error => {
         console.error("Workout read error:", error);
@@ -589,6 +678,15 @@
         console.error("Weight read error:", error);
     });
 
+    neckDbRef.on('value', snapshot => {
+        neckLogs = snapshot.val() || {};
+        localStorage.setItem('neck_log_cache', JSON.stringify(neckLogs));
+        if (currentTab === "NECK") renderTabContent();
+        document.getElementById('sync-status').textContent = "Synced";
+    }, error => {
+        console.error("Neck read error:", error);
+    });
+
     function switchTab(tab) {
         currentTab = tab;
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -596,10 +694,10 @@
             btn.classList.toggle('active', matches);
         });
 
-        // Hide timer on Weight and Stats tabs
+        // Hide timer on Weight, Stats, and Neck tabs
         const dock = document.getElementById('rest-dock');
         if (dock) {
-            dock.style.display = (tab === "WEIGHT" || tab === "DASH") ? "none" : "flex";
+            dock.style.display = (tab === "WEIGHT" || tab === "DASH" || tab === "NECK") ? "none" : "flex";
         }
 
         renderTabContent();
@@ -695,6 +793,7 @@
         }
     }
 
+    // --- RENDER ROUTINE / LOG TABS ---
     function renderTabContent() {
         const container = document.getElementById('tab-content');
         container.innerHTML = "";
@@ -706,6 +805,11 @@
 
         if (currentTab === "WEIGHT") {
             renderWeightTab(container);
+            return;
+        }
+
+        if (currentTab === "NECK") {
+            renderNeckTab(container);
             return;
         }
 
@@ -773,7 +877,6 @@
                     else if (s === 2) tagLabel = "Back S2";
                 }
 
-                // If only 1 set (like TGU or Walk), label clearly
                 if (activeSets === 1) tagLabel = "Working";
 
                 setsHtml += `
@@ -878,6 +981,109 @@
                 btn.textContent = "Log";
             }
         }, 5000);
+    }
+
+    // --- DAILY TECH-NECK TAB ---
+    function renderNeckTab(container) {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const selectedDate = document.getElementById('neck-date-select') ? document.getElementById('neck-date-select').value : todayStr;
+        const currentData = neckLogs[selectedDate] || { items: {}, notes: "", completed: 0 };
+
+        // Calculate Streak & Totals
+        const allDates = Object.keys(neckLogs).sort();
+        const totalDaysDone = allDates.filter(d => neckLogs[d] && neckLogs[d].completed >= 4).length;
+
+        // Calculate progress percentage
+        let checkedCount = 0;
+        NECK_PROTOCOL.forEach(item => {
+            if (currentData.items && currentData.items[item.id]) checkedCount++;
+        });
+        const percent = Math.round((checkedCount / NECK_PROTOCOL.length) * 100);
+
+        let checklistHtml = "";
+        NECK_PROTOCOL.forEach(item => {
+            const isChecked = currentData.items && currentData.items[item.id];
+            checklistHtml += `
+                <div class="neck-item-card ${isChecked ? 'completed' : ''}" onclick="toggleNeckCheck('${selectedDate}', '${item.id}')">
+                    <div class="neck-checkbox"></div>
+                    <div class="neck-item-content">
+                        <span class="neck-item-name">${item.name}</span>
+                        <span class="neck-item-cue">${item.cue}</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = `
+            <div class="section-header">
+                <div class="section-title">TECH-NECK RESET</div>
+                <input type="date" id="neck-date-select" class="session-date-picker" value="${selectedDate}" onchange="renderNeckTab(document.getElementById('tab-content'))">
+            </div>
+
+            <div class="dash-metric-grid">
+                <div class="dash-metric-card">
+                    <div class="metric-label">Today's Progress</div>
+                    <div class="metric-value">${percent}%</div>
+                    <div class="neck-progress-track">
+                        <div class="neck-progress-fill" style="width:${percent}%;"></div>
+                    </div>
+                </div>
+                <div class="dash-metric-card">
+                    <div class="metric-label">Completed Sessions</div>
+                    <div class="metric-value">${totalDaysDone}</div>
+                    <div class="metric-sub">Consistent reset days</div>
+                </div>
+            </div>
+
+            <div class="card" style="padding:10px 12px; font-size:0.75rem; color:#888; line-height:1.4;">
+                <strong style="color:#fff;">Clinical Protocol (3–4 min daily):</strong>
+                Perform these 5 drills to pull the cervical spine back over the shoulders, wake up the <em>longus colli</em>, and release suboccipital tension.
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                ${checklistHtml}
+            </div>
+
+            <div class="card" style="margin-top:10px;">
+                <span class="exercise-name" style="font-size:0.8rem;">Daily Posture Notes</span>
+                <input type="text" id="neck-notes-input" class="notes-input" style="width:100%;" placeholder="e.g. traps looser today, chin staying back" value="${currentData.notes || ''}" onblur="saveNeckNotes('${selectedDate}', this.value)">
+            </div>
+        `;
+    }
+
+    function toggleNeckCheck(dateStr, itemId) {
+        const currentData = neckLogs[dateStr] || { items: {}, notes: "", completed: 0 };
+        if (!currentData.items) currentData.items = {};
+
+        // Toggle state
+        currentData.items[itemId] = !currentData.items[itemId];
+
+        // Recalculate completed count
+        let count = 0;
+        NECK_PROTOCOL.forEach(item => {
+            if (currentData.items[item.id]) count++;
+        });
+        currentData.completed = count;
+        currentData.date = dateStr;
+        currentData.timestamp = Date.now();
+
+        // Save to Firebase and Local Cache
+        neckLogs[dateStr] = currentData;
+        localStorage.setItem('neck_log_cache', JSON.stringify(neckLogs));
+        neckDbRef.child(dateStr).set(currentData);
+
+        renderNeckTab(document.getElementById('tab-content'));
+    }
+
+    function saveNeckNotes(dateStr, notesText) {
+        const currentData = neckLogs[dateStr] || { items: {}, notes: "", completed: 0 };
+        currentData.notes = notesText;
+        currentData.date = dateStr;
+        currentData.timestamp = Date.now();
+
+        neckLogs[dateStr] = currentData;
+        localStorage.setItem('neck_log_cache', JSON.stringify(neckLogs));
+        neckDbRef.child(dateStr).set(currentData);
     }
 
     // --- BODYWEIGHT TRACKING TAB ---
