@@ -53,7 +53,7 @@
             color: var(--text-secondary); font-size: 0.8rem; border-radius: 6px; padding: 4px 8px;
         }
 
-        /* --- WARM-UP CARD STYLING --- */
+        /* Warm-up card */
         .warmup-card {
             background: #0d0d0d;
             border: 1px dashed #2a2a2a;
@@ -126,6 +126,7 @@
         }
         .chart-icon-btn:hover { opacity: 1; }
 
+        /* Sets block with dynamic controls */
         .sets-block-container {
             display: flex; flex-direction: column; gap: 6px;
         }
@@ -134,7 +135,7 @@
             padding: 8px 10px; border-radius: 6px; border: 1px solid #1a1a1a;
         }
         .set-row {
-            display: grid; grid-template-columns: 45px 1fr 18px 1fr; gap: 8px;
+            display: grid; grid-template-columns: 55px 1fr 18px 1fr; gap: 8px;
             align-items: center;
         }
         .set-tag { font-size: 0.7rem; font-weight: 600; color: #666; text-transform: uppercase; }
@@ -146,8 +147,12 @@
         }
         .num-input:focus { border-color: #555; }
 
+        .backoff-hint {
+            font-size: 0.65rem; color: #aaa; font-family: monospace; padding: 0 4px;
+        }
+
         .set-adjust-bar {
-            display: flex; justify-content: flex-end; gap: 6px; margin-top: 2px;
+            display: flex; justify-content: space-between; align-items: center; margin-top: 2px;
         }
         .set-adjust-btn {
             background: transparent; border: 1px solid #2a2a2a; color: #777;
@@ -171,6 +176,7 @@
             background: #2a2a2a; color: #fff; border: 1px solid #555;
         }
 
+        /* Metric Cards */
         .dash-metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
         .dash-metric-card {
             background: var(--surface-color); border: 1px solid var(--surface-border);
@@ -356,7 +362,6 @@
     const workoutDbRef = database.ref('workout_tracker/logs');
     const weightDbRef = database.ref('workout_tracker/bodyweight');
 
-    // WARM-UP PROTOCOLS FOR EACH DAY
     const WARMUPS = {
         LEGS: [
             { name: "Prying Squats", cue: "2 rounds × 5–8 reps (sink deep, pry knees out with elbows)" },
@@ -375,25 +380,26 @@
         ]
     };
 
+    // Flagged backoff: true for exercises that use Top Set + Back-Off Set formula
     const ROUTINE = {
         LEGS: [
-            { id: "squat", name: "Barbell Back Squat", target: "2 × 6–8 reps (Top + Back-off)", sets: 2 },
+            { id: "squat", name: "Barbell Back Squat", target: "2 × 6–8 reps (Top + Back-off)", sets: 2, backoff: true },
             { id: "kb_reverse_lunge", name: "KB Reverse Lunge", target: "2 × 8–10 / leg (Goblet hold)", sets: 2 },
-            { id: "rdl", name: "Barbell Romanian Deadlift", target: "2 × 8–10 reps", sets: 2 },
+            { id: "rdl", name: "Barbell Romanian Deadlift", target: "2 × 8–10 reps (Top + Back-off)", sets: 2, backoff: true },
             { id: "calf_core", name: "Standing Calf + Deadbug", target: "2 × 15 / 10 side", sets: 2 },
             { id: "swings", name: "2-Hand KB Swings (Finisher)", target: "5 × 10 EMOM (50 reps)", sets: 5 }
         ],
         PUSH: [
             { id: "kb_push_press", name: "KB Push Press (Power Primer)", target: "3 × 5 / side (Snappy)", sets: 3 },
-            { id: "incline_bench", name: "Incline Barbell Bench (15–30°)", target: "2 × 6–8 reps (Top + Back-off)", sets: 2 },
-            { id: "ohp", name: "Standing Barbell OHP", target: "2 × 6–8 reps (Top + Back-off)", sets: 2 },
+            { id: "incline_bench", name: "Incline Barbell Bench (15–30°)", target: "2 × 6–8 reps (Top + Back-off)", sets: 2, backoff: true },
+            { id: "ohp", name: "Standing Barbell OHP", target: "2 × 6–8 reps (Top + Back-off)", sets: 2, backoff: true },
             { id: "pushups", name: "Deep Parallette Push-ups", target: "2 × 8–12 reps (Deep Stretch)", sets: 2 },
             { id: "lateral_raises", name: "Dumbbell Lateral Raises", target: "2 × 12–15 reps", sets: 2 },
             { id: "tricep_ext", name: "Triceps Ext (Skull Crushers / KB)", target: "2 × 10–12 reps", sets: 2 }
         ],
         PULL: [
             { id: "chins", name: "Chin-ups / Band Assisted", target: "2 × 5–8 reps (Start Fresh)", sets: 2 },
-            { id: "pendlay", name: "Barbell Pendlay Row", target: "2 × 6–8 reps (Top + Back-off)", sets: 2 },
+            { id: "pendlay", name: "Barbell Pendlay Row", target: "2 × 6–8 reps (Top + Back-off)", sets: 2, backoff: true },
             { id: "band_pulldown", name: "Band Straight-Arm Pulldown", target: "2 × 12–15 reps (Lat Stretch)", sets: 2 },
             { id: "rear_delt", name: "Dumbbell Rear-Delt Fly", target: "2 × 12–15 reps", sets: 2 },
             { id: "shrugs", name: "Barbell or DB Shrugs", target: "2 × 10–15 reps (Pause at top)", sets: 2 },
@@ -590,13 +596,54 @@
         switchTab('DASH');
     }
 
+    function isBackoffExercise(exerciseId) {
+        for (let day in ROUTINE) {
+            const ex = ROUTINE[day].find(e => e.id === exerciseId);
+            if (ex && ex.backoff) return true;
+        }
+        return false;
+    }
+
+    // --- AUTO-CALCULATE AND PROPAGATE -10% BACK-OFF WEIGHT ---
     function autoPropagateWeight(exerciseId, setIndex, value) {
+        const valNum = parseFloat(value);
+        const isBackoff = isBackoffExercise(exerciseId);
+        const hintEl = document.getElementById(`hint_${exerciseId}`);
+
         if (setIndex === 1) {
-            for (let s = 2; s <= 6; s++) {
-                const el = document.getElementById(`w_${exerciseId}_s${s}`);
-                if (el && (!el.value || el.dataset.autoFilled === "true")) {
-                    el.value = value;
-                    el.dataset.autoFilled = "true";
+            if (!isNaN(valNum) && valNum > 0 && isBackoff) {
+                // Calculate 10% drop rounded to the nearest 0.5 kg (matches microplates)
+                const backoffWeight = Math.round((valNum * 0.90) * 2) / 2;
+                
+                if (hintEl) {
+                    hintEl.style.display = "block";
+                    hintEl.textContent = `⚡ Back-off: ${backoffWeight}kg (-10%)`;
+                }
+
+                // Auto-fill Set 2 with calculated back-off weight
+                const el2 = document.getElementById(`w_${exerciseId}_s2`);
+                if (el2 && (!el2.value || el2.dataset.autoFilled === "true")) {
+                    el2.value = backoffWeight;
+                    el2.dataset.autoFilled = "true";
+                }
+
+                // Fill subsequent sets with back-off weight as default
+                for (let s = 3; s <= 6; s++) {
+                    const el = document.getElementById(`w_${exerciseId}_s${s}`);
+                    if (el && (!el.value || el.dataset.autoFilled === "true")) {
+                        el.value = backoffWeight;
+                        el.dataset.autoFilled = "true";
+                    }
+                }
+            } else {
+                if (hintEl) hintEl.style.display = "none";
+                // Standard straight sets propagation for accessories
+                for (let s = 2; s <= 6; s++) {
+                    const el = document.getElementById(`w_${exerciseId}_s${s}`);
+                    if (el && (!el.value || el.dataset.autoFilled === "true")) {
+                        el.value = value;
+                        el.dataset.autoFilled = "true";
+                    }
                 }
             }
         }
@@ -661,7 +708,7 @@
         `;
         container.appendChild(header);
 
-        // --- RENDER DEDICATED WARM-UP CARD AT THE TOP ---
+        // Warm-up Card
         if (WARMUPS[currentTab]) {
             const warmupCard = document.createElement('div');
             warmupCard.className = "warmup-card";
@@ -709,9 +756,16 @@
                     else defaultWeight = prev.weight || '';
                 }
 
+                // Tag set 1 as Top Set and set 2 as Back-off if applicable
+                let tagLabel = `Set ${s}`;
+                if (exercise.backoff) {
+                    if (s === 1) tagLabel = "Top S1";
+                    else if (s === 2) tagLabel = "Back S2";
+                }
+
                 setsHtml += `
                     <div class="set-row">
-                        <span class="set-tag">Set ${s}</span>
+                        <span class="set-tag">${tagLabel}</span>
                         <input type="number" step="0.5" id="w_${exercise.id}_s${s}" class="num-input" placeholder="${defaultWeight ? defaultWeight + ' kg' : 'kg'}" oninput="autoPropagateWeight('${exercise.id}', ${s}, this.value)" onchange="markManualWeight(this)">
                         <span class="set-x">×</span>
                         <input type="number" id="r_${exercise.id}_s${s}" class="num-input" placeholder="reps">
@@ -735,8 +789,11 @@
                         ${setsHtml}
                     </div>
                     <div class="set-adjust-bar">
-                        <button class="set-adjust-btn" onclick="modifySetCount('${exercise.id}', 1)">+ Add Set</button>
-                        ${activeSets > 1 ? `<button class="set-adjust-btn" onclick="modifySetCount('${exercise.id}', -1)">- Set</button>` : ''}
+                        <span id="hint_${exercise.id}" class="backoff-hint" style="display:none;"></span>
+                        <div style="display:flex; gap:4px; margin-left:auto;">
+                            <button class="set-adjust-btn" onclick="modifySetCount('${exercise.id}', 1)">+ Add Set</button>
+                            ${activeSets > 1 ? `<button class="set-adjust-btn" onclick="modifySetCount('${exercise.id}', -1)">- Set</button>` : ''}
+                        </div>
                     </div>
                 </div>
 
